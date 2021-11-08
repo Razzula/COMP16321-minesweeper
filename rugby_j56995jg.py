@@ -1,4 +1,10 @@
-inp = input()
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('inputData')
+
+args = parser.parse_args()
+inp = args.inputData
 
 scores = []
 for i in range(0, len(inp), 3):
