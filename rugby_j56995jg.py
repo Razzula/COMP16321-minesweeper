@@ -1,38 +1,41 @@
-import argparse
+import os, argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('inputFileName')
-parser.add_argument('outputFileName')
+parser.add_argument('inputDirectoryName')
+parser.add_argument('outputDirectoryName')
 
 args = parser.parse_args()
-inputFile = open(args.inputFileName, 'r')
-inp = inputFile.read()
-inputFile.close()
 
-scores = []
-for i in range(0, len(inp), 3):
-    scores.append(inp[i:i+3])
+for file in os.listdir(args.inputDirectoryName):
+    inputFile = open(args.inputDirectoryName + "/" + file, 'r')
+    inp = inputFile.read()
+    #fileName = inputFile.name
+    inputFile.close()
 
-T1 = 0
-T2 = 0
+    scores = []
+    for i in range(0, len(inp), 3):
+        scores.append(inp[i:i+3])
 
-for score in scores:
-    if score[2] == 't':
-        increment = 5
-    elif score[2] == 'c':
-        increment = 2
-    elif score[2] == 'p':
-        increment = 3
-    elif score[2] == 'd':
-        increment = 3
-    else:
-        increment = 0
+    T1 = 0
+    T2 = 0
 
-    if score[0:2] == 'T1':
-        T1 += increment
-    elif score[0:2] == 'T2':
-        T2 += increment
+    for score in scores:
+        if score[2] == 't':
+            increment = 5
+        elif score[2] == 'c':
+            increment = 2
+        elif score[2] == 'p':
+            increment = 3
+        elif score[2] == 'd':
+            increment = 3
+        else:
+            increment = 0
 
-outputFile = open(args.outputFileName, 'w')
-outputFile.write(str(T1) + ":" + str(T2))
-inputFile.close()
+        if score[0:2] == 'T1':
+            T1 += increment
+        elif score[0:2] == 'T2':
+            T2 += increment
+
+    outputFile = open(args.outputDirectoryName + "/" + file[0:-4] + "_j56995jg.txt", 'w')
+    outputFile.write(str(T1) + ":" + str(T2))
+    inputFile.close()
