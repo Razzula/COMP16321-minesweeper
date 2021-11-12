@@ -53,7 +53,7 @@ for file in os.listdir(args.inputDirectoryName):
     outputFile = open(args.outputDirectoryName + "/" + file[0:-4] + "_j56995jg.txt", 'w')
     outputFile.write("j56995jg")
     outputFile.write("\nFormatting ###################")
-    outputFile.write("\nNumber of upper case words transformed: " + str(caseTrans))
+    outputFile.write("\nNumber of upper case words changed: " + str(caseTrans))
     outputFile.write("\nNumber of punctuations removed: " + str(puncRmvs))
     outputFile.write("\nNumber of numbers removed: " + str(nmbrRmvs))
     outputFile.write("\nSpellchecking ###################")
