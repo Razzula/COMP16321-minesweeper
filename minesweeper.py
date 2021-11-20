@@ -103,10 +103,13 @@ def SweepTile(x, y):
     gridMask[x][y] = 1
     canvas.delete(tileGrid[x][y])
     if grid[x][y] == -1:
+        canvas.tag_raise(textGrid[x][y]) #temp
         print("BOOM!")
         global active
         active = False
-    elif grid[x][y] == 0: #if blank tile, ripple
+        return
+    
+    if grid[x][y] == 0: #if blank tile, ripple
         for deltaX in range(-1, 2):
             if x + deltaX < 0 or x + deltaX >= l:
                 continue
@@ -114,6 +117,9 @@ def SweepTile(x, y):
                 if y + deltaY < 0 or y + deltaY >= l:
                     continue
                 SweepTile(x +deltaX, y +deltaY) #ripple
+    else:
+        canvas.tag_raise(textGrid[x][y])
+
         
 
 
@@ -178,6 +184,11 @@ def Move():
         x = crds[0] + 8 * (movement[3] - movement[1])
         y = crds[1] + 8 * (movement[2] - movement[0])
         canvas.coords(cursor, x, y)
+        #canvas.coords(sweeper, x, y)
+
+def MouseMove(event):
+    x, y = event.x, event.y
+    canvas.coords(cursor, x, y)
 
 ## INTERFACE ####################
 
@@ -187,17 +198,19 @@ def DisplayGrid():
         for c in range(l):
             
             #display numbers and bombs
-            if grid[r][c] == -1:
-                text = canvas.create_text(41 + c*80, 41 + r*80, text="💣")
+            if grid[r][c] != 0:
+                if grid[r][c] == -1:
+                    text = canvas.create_text(41 + c*80, 41 + r*80, text="💣", fill="#13e843")
+                else:
+                    text = canvas.create_text(41 + c*80, 41 + r*80, text=str(grid[r][c]), fill="#13e843")
                 canvas.tag_lower(text)
-                
-            elif grid[r][c] != 0:
-                text = canvas.create_text(41 + c*80, 41 + r*80, text=str(grid[r][c]))
-                canvas.tag_lower(text)
+                textGrid[r][c] = text
 
             #reveal visible values
             if gridMask[r][c] == 1:
                 canvas.delete(tileGrid[r][c])
+                if textGrid[r][c] != None:
+                    canvas.tag_raise(textGrid[r][c])
 
 window = tk.Tk()
 window.title = "Minesweeper"
@@ -206,10 +219,12 @@ window.geometry("640x640")
 tile = tk.PhotoImage(file="tile.png")
 flag = tk.PhotoImage(file="flag.png")
 crss = tk.PhotoImage(file="crosshair.png")
+swpr = tk.PhotoImage(file="spinner.png")
 
-canvas = tk.Canvas(window, width=640, height=640)
+canvas = tk.Canvas(window, width=640, height=640, bg='#001703')
 
 tileGrid = [[None for c in range(8)] for r in range(8)]
+textGrid = [[None for c in range(8)] for r in range(8)]
 for r in range(8):
     for c in range(8):
         tileGrid[r][c] = canvas.create_image(41 + c*80, 41 + r*80, image=tile)
@@ -218,9 +233,11 @@ movement = [0, 0, 0, 0,]
 
 window.bind("<KeyPress>", KeyPress)
 window.bind("<KeyRelease>", KeyRelease)
+window.bind('<Motion>', MouseMove)
 
 canvas.pack()
 cursor = canvas.create_image(320, 320, image=crss)
+#sweeper = canvas.create_image(320, 320, image=swpr)
 
 ## MAIN #########################        
 
