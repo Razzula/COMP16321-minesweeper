@@ -100,11 +100,25 @@ def GenerateGrid(inputX, inputY):
     print('done')
 
 def SweepTile(x, y):
+    if gridMask[x][y] == 1: #if tile alreadys sweeped
+        return
+
     gridMask[x][y] = 1
+    canvas.delete(tileGrid[x][y])
     if grid[x][y] == -1:
         print("BOOM!")
         global active
         active = False
+    elif grid[x][y] == 0: #if blank tile, ripple
+        for deltaX in range(-1, 2):
+            if x + deltaX < 0 or x + deltaX >= l:
+                continue
+            for deltaY in range(-1, 2):
+                if y + deltaY < 0 or y + deltaY >= l:
+                    continue
+                SweepTile(x +deltaX, y +deltaY) #ripple
+        
+
 
 def FlagTile(x, y):
     if gridMask[x][y] == 0:
@@ -134,7 +148,6 @@ def KeyPress(key):
         crds = canvas.coords(cursor)
         x = math.floor(crds[1] / 80)
         y = math.floor(crds[0] / 80)
-        canvas.delete(tileGrid[x][y])
         if playing:
             SweepTile(x, y)
         else:
