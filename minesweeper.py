@@ -67,18 +67,15 @@ def GenerateGrid(inputX, inputY):
                         gridMask[x][y] = 1
                         flag = True
 
-                        if y > 0:
-                            if gridMask[x][y-1] == 0:
-                                gridMask[x][y-1] = 2
-                        if x < l-1:
-                            if gridMask[x+1][y] == 0:
-                                gridMask[x+1][y] = 2
-                        if y < l-1:
-                            if gridMask[x][y+1] == 0:
-                                gridMask[x][y+1] = 2
-                        if x > 0:
-                            if gridMask[x-1][y] == 0:
-                                gridMask[x-1][y] = 2
+                        for deltaX in range(-1, 2):
+                            if x + deltaX < 0 or x + deltaX >= l:
+                                continue
+                            for deltaY in range(-1, 2):
+                                if y + deltaY < 0 or y + deltaY >= l:
+                                    continue
+
+                                if gridMask[x+deltaX][y+deltaY] == 0:
+                                    gridMask[x+deltaX][y+deltaY] = 2
     
     print('blanks set to 1')
 
@@ -227,7 +224,6 @@ cursor = canvas.create_image(320, 320, image=crss)
 
 ## MAIN #########################        
 
-#l = int(input("Dimension of Grid: "))
 l = 8
 grid = [[0 for i in range(l)] for i in range(l)] #holds locations of bombs and number indicators
 gridMask = [[0 for i in range(l)] for i in range(l)] #stores which tiles are 'visible' to the user 
@@ -235,5 +231,6 @@ numberOfBombs = int(l*l / 8)
 
 playing = False
 active = True
+mouseControls = True
 
 window.mainloop()
