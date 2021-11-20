@@ -110,30 +110,6 @@ def FlagTile(x, y):
     elif gridMask[x][y] == -1:
         gridMask[x][y] == 0
 
-def DisplayGrid():
-    temp = '    '
-    for i in range(l):
-        temp += str(i) + ' '
-    print(temp)
-    temp = '   --' + '--'*l
-    print(temp)
-
-    for r in range(l):
-        temp = str(r) + ' |'
-        for c in range(l):
-            if gridMask[r][c] == 0:
-                temp += ' ?'
-            elif gridMask[r][c] == -1:
-                temp += ' !'
-            else:
-                if grid[r][c] == 0:
-                    temp += '  '
-                elif grid[r][c] == -1:
-                    temp += ' X'
-                else:
-                    temp += ' ' + str(grid[r][c])
-        print(temp)
-
 ## INTERACTION ##################
 
 def KeyPress(key):
@@ -159,6 +135,7 @@ def KeyPress(key):
             SweepTile(x, y)
         else:
             GenerateGrid(x, y)
+            DisplayGrid()
             playing = True
     if key.keycode == 8: #backspace
         print("FLAG")
@@ -189,6 +166,25 @@ def Move():
     canvas.coords(cursor, x, y)
 
 ## INTERFACE ####################
+
+def DisplayGrid():
+    
+    for r in range(l):
+        for c in range(l):
+            #grid
+            if gridMask[r][c] == 0:
+                canvas.create_text(41 + c*80, 41 + r*80, text="?")
+            elif gridMask[r][c] == -1:
+                canvas.create_text(41 + c*80, 41 + r*80, text="!")
+            else:
+                if grid[r][c] == -1:
+                    canvas.create_text(41 + c*80, 41 + r*80, text="X")
+                else:
+                    canvas.create_text(41 + c*80, 41 + r*80, text=str(grid[r][c]))
+
+            #gridmask
+            if gridMask[r][c] == 1:
+                canvas.delete(tileGrid[r][c])
 
 window = tk.Tk()
 window.title = "Minesweeper"
@@ -222,5 +218,8 @@ gridMask = [[0 for i in range(l)] for i in range(l)] #stores which tiles are 'vi
 numberOfBombs = int(l*l / 8)
 
 playing = False
+
+temp = canvas.create_text(40, 40, text="test")
+canvas.tag_lower(temp)
 
 window.mainloop()
