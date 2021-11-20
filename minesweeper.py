@@ -1,4 +1,8 @@
 import random
+import math
+import tkinter as tk
+
+## LOGIC ########################
 
 def GenerateGrid(inputX, inputY):
     gridMask[inputX][inputY] = 1
@@ -78,7 +82,7 @@ def GenerateGrid(inputX, inputY):
     
     print('blanks set to 1')
 
-    #set numbers as 1
+    #set 2s to 1s
     flag = True 
     while flag:
         flag = False
@@ -97,6 +101,8 @@ def GenerateGrid(inputX, inputY):
 
 def SweepTile(x, y):
     gridMask[x][y] = 1
+    if grid[x][y] == -1:
+        print("BOOM!")
 
 def FlagTile(x, y):
     if gridMask[x][y] == 0:
@@ -127,19 +133,94 @@ def DisplayGrid():
                 else:
                     temp += ' ' + str(grid[r][c])
         print(temp)
-                    
-l = int(input("Dimension of Grid: "))
+
+## INTERACTION ##################
+
+def KeyPress(key):
+
+    if key.keycode == 87 or key.keycode == 38: #w, uparrow
+        movement[0] = 1
+    if key.keycode == 65 or key.keycode == 37: #a, leftarrow
+        movement[1] = 1
+    if key.keycode == 83 or key.keycode == 40: #s, downarrow
+        movement[2] = 1
+    if key.keycode == 68 or key.keycode == 39: #d, rightarrow
+        movement[3] = 1
+
+    if key.keycode == 13: #enter
+        global playing
+        print("SWEEP")
+
+        crds = canvas.coords(cursor)
+        x = math.floor(crds[1] / 80)
+        y = math.floor(crds[0] / 80)
+        canvas.delete(tileGrid[x][y])
+        if playing:
+            SweepTile(x, y)
+        else:
+            GenerateGrid(x, y)
+            playing = True
+    if key.keycode == 8: #backspace
+        print("FLAG")
+
+        crds = canvas.coords(cursor)
+        x = math.floor(crds[1] / 80)
+        y = math.floor(crds[0] / 80)
+        canvas.itemconfig(tileGrid[x][y], image=flag)
+        FlagTile(x, y)
+
+    Move()
+
+def KeyRelease(key):
+
+    if key.keycode == 87 or key.keycode == 38:
+        movement[0] = 0
+    if key.keycode == 65 or key.keycode == 37:
+        movement[1] = 0
+    if key.keycode == 83 or key.keycode == 40:
+        movement[2] = 0
+    if key.keycode == 68 or key.keycode == 39:
+        movement[3] = 0
+
+def Move():
+    crds = canvas.coords(cursor)
+    x = crds[0] + 8 * (movement[3] - movement[1])
+    y = crds[1] + 8 * (movement[2] - movement[0])
+    canvas.coords(cursor, x, y)
+
+## INTERFACE ####################
+
+window = tk.Tk()
+window.title = "Minesweeper"
+window.geometry("640x640")
+
+tile = tk.PhotoImage(file="tile.png")
+flag = tk.PhotoImage(file="flag.png")
+crss = tk.PhotoImage(file="crosshair.png")
+
+canvas = tk.Canvas(window, width=640, height=640)
+
+tileGrid = [[None for c in range(8)] for r in range(8)]
+for r in range(8):
+    for c in range(8):
+        tileGrid[r][c] = canvas.create_image(41 + c*80, 41 + r*80, image=tile)
+
+movement = [0, 0, 0, 0,]
+
+window.bind("<KeyPress>", KeyPress)
+window.bind("<KeyRelease>", KeyRelease)
+
+canvas.pack()
+cursor = canvas.create_image(320, 320, image=crss)
+
+## MAIN #########################        
+
+#l = int(input("Dimension of Grid: "))
+l = 8
 grid = [[0 for i in range(l)] for i in range(l)] #holds locations of bombs and number indicators
 gridMask = [[0 for i in range(l)] for i in range(l)] #stores which tiles are 'visible' to the user 
-numberOfBombs = l*l / 8
+numberOfBombs = int(l*l / 8)
 
-GenerateGrid(4, 4)
-while True:
-    print("\n")
-    DisplayGrid()
-    print("\n[! or ?] [x] [y], (! for flag, ? for sweep)")
-    inp = input().split()
-    if inp[0] == '!':
-        FlagTile(int(inp[2]), int(inp[1]))
-    elif inp[0] == '?':
-        SweepTile(int(inp[2]), int(inp[1]))
+playing = False
+
+window.mainloop()
