@@ -103,12 +103,16 @@ def SweepTile(x, y):
     gridMask[x][y] = 1
     if grid[x][y] == -1:
         print("BOOM!")
+        global active
+        active = False
 
 def FlagTile(x, y):
     if gridMask[x][y] == 0:
         gridMask[x][y] = -1
+        canvas.itemconfig(tileGrid[x][y], image=flag)
     elif gridMask[x][y] == -1:
-        gridMask[x][y] == 0
+        gridMask[x][y] = 0
+        canvas.itemconfig(tileGrid[x][y], image=tile)
 
 ## INTERACTION ##################
 
@@ -143,7 +147,6 @@ def KeyPress(key):
         crds = canvas.coords(cursor)
         x = math.floor(crds[1] / 80)
         y = math.floor(crds[0] / 80)
-        canvas.itemconfig(tileGrid[x][y], image=flag)
         FlagTile(x, y)
 
     Move()
@@ -160,10 +163,11 @@ def KeyRelease(key):
         movement[3] = 0
 
 def Move():
-    crds = canvas.coords(cursor)
-    x = crds[0] + 8 * (movement[3] - movement[1])
-    y = crds[1] + 8 * (movement[2] - movement[0])
-    canvas.coords(cursor, x, y)
+    if active:
+        crds = canvas.coords(cursor)
+        x = crds[0] + 8 * (movement[3] - movement[1])
+        y = crds[1] + 8 * (movement[2] - movement[0])
+        canvas.coords(cursor, x, y)
 
 ## INTERFACE ####################
 
@@ -171,18 +175,17 @@ def DisplayGrid():
     
     for r in range(l):
         for c in range(l):
-            #grid
-            if gridMask[r][c] == 0:
-                canvas.create_text(41 + c*80, 41 + r*80, text="?")
-            elif gridMask[r][c] == -1:
-                canvas.create_text(41 + c*80, 41 + r*80, text="!")
-            else:
-                if grid[r][c] == -1:
-                    canvas.create_text(41 + c*80, 41 + r*80, text="X")
-                else:
-                    canvas.create_text(41 + c*80, 41 + r*80, text=str(grid[r][c]))
+            
+            #display numbers and bombs
+            if grid[r][c] == -1:
+                text = canvas.create_text(41 + c*80, 41 + r*80, text="💣")
+                canvas.tag_lower(text)
+                
+            elif grid[r][c] != 0:
+                text = canvas.create_text(41 + c*80, 41 + r*80, text=str(grid[r][c]))
+                canvas.tag_lower(text)
 
-            #gridmask
+            #reveal visible values
             if gridMask[r][c] == 1:
                 canvas.delete(tileGrid[r][c])
 
@@ -218,8 +221,6 @@ gridMask = [[0 for i in range(l)] for i in range(l)] #stores which tiles are 'vi
 numberOfBombs = int(l*l / 8)
 
 playing = False
-
-temp = canvas.create_text(40, 40, text="test")
-canvas.tag_lower(temp)
+active = True
 
 window.mainloop()
