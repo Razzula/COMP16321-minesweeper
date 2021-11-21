@@ -12,9 +12,10 @@ def GenerateGrid(inputX, inputY):
     while counter < numberOfBombs:
         x = random.randint(0, l-1)
         y = random.randint(0, l-1)
-        if gridMask[x][y] == 0: #ensure tile is not starting tile, or already a bomb
+        if gridMask[x][y] == 0 and grid[x][y] == 0: #ensure tile is not starting tile, or already a bomb
             grid[x][y] = -1
             counter += 1
+    removals = 1
 
     print('bombs placed')
 
@@ -65,6 +66,7 @@ def GenerateGrid(inputX, inputY):
                 if gridMask[x][y] == 2:
                     if grid[x][y] == 0:
                         gridMask[x][y] = 1
+                        removals += 1
                         flag = True
 
                         for deltaX in range(-1, 2):
@@ -90,9 +92,13 @@ def GenerateGrid(inputX, inputY):
                 if gridMask[x][y] == 2:
                     if grid[x][y] > -1:
                         gridMask[x][y] = 1
+                        removals += 1
                     else:
                         gridMask[x][y] = 0
                     flag = True
+
+    global tiles
+    tiles -= removals
 
     print('done')
 
@@ -106,6 +112,8 @@ def SweepTile(x, y):
         scoreArea.itemconfig(flagText, text="Flags: " + str(flags))
 
     gridMask[x][y] = 1 #sweep
+    global tiles
+    tiles -= 1
 
     gameArea.delete(tileGrid[x][y])
     if grid[x][y] == -1: #loss condition
@@ -131,11 +139,19 @@ def FlagTile(x, y):
         gridMask[x][y] = -1
         gameArea.itemconfig(tileGrid[x][y], image=flag)
         flags -= 1
+
     elif gridMask[x][y] == -1:
         gridMask[x][y] = 0
         gameArea.itemconfig(tileGrid[x][y], image=tile)
         flags += 1
     scoreArea.itemconfig(flagText, text="Flags: " + str(flags))
+
+def CheckWin():
+    if flags == 0:
+        if tiles == numberOfBombs:
+            print("YAAY!")
+            global paused
+            paused = True
 
 ## INTERACTION ##################
 
@@ -159,7 +175,8 @@ def KeyPress(key):
         y = math.floor(crds[0] / 80)
         if playing:
             SweepTile(x, y)
-        else:
+            CheckWin()
+        else: #initial sweep
             GenerateGrid(x, y)
             DisplayGrid()
             playing = True
@@ -171,6 +188,7 @@ def KeyPress(key):
         x = math.floor(crds[1] / 80)
         y = math.floor(crds[0] / 80)
         FlagTile(x, y)
+        CheckWin()
 
 def KeyRelease(key):
 
@@ -264,7 +282,9 @@ cursor = gameArea.create_image(320, 320, image=crss)
 l = 8
 grid = [[0 for i in range(l)] for i in range(l)] #holds locations of bombs and number indicators
 gridMask = [[0 for i in range(l)] for i in range(l)] #stores which tiles are 'visible' to the user 
-numberOfBombs = int(l*l / 8)
+
+tiles = l*l
+numberOfBombs = int(tiles / 8)
 flags = numberOfBombs
 scoreArea.itemconfig(flagText, text="Flags: " + str(flags))
 
