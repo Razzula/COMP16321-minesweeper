@@ -157,6 +157,15 @@ def CheckWin():
 
 def KeyPress(key):
 
+    if key.keycode == 27: #esc
+        global paused
+        paused = not paused
+        
+        if paused:
+            gameArea.pack_forget()
+        else:
+            gameArea.pack()
+
     if key.keycode == 87 or key.keycode == 38: #w, uparrow
         movement[0] = 1
     if key.keycode == 65 or key.keycode == 37: #a, leftarrow
@@ -166,29 +175,30 @@ def KeyPress(key):
     if key.keycode == 68 or key.keycode == 39: #d, rightarrow
         movement[3] = 1
 
-    if key.keycode == 13: #enter
-        global playing
-        print("SWEEP")
+    if not paused:
+        if key.keycode == 13: #enter
+            global playing
+            print("SWEEP")
 
-        crds = gameArea.coords(cursor)
-        x = math.floor(crds[1] / 80)
-        y = math.floor(crds[0] / 80)
-        if playing:
-            SweepTile(x, y)
+            crds = gameArea.coords(cursor)
+            x = math.floor(crds[1] / 80)
+            y = math.floor(crds[0] / 80)
+            if playing:
+                SweepTile(x, y)
+                CheckWin()
+            else: #initial sweep
+                GenerateGrid(x, y)
+                DisplayGrid()
+                playing = True
+                UpdateTimer(0)
+        if key.keycode == 8: #backspace
+            print("FLAG")
+
+            crds = gameArea.coords(cursor)
+            x = math.floor(crds[1] / 80)
+            y = math.floor(crds[0] / 80)
+            FlagTile(x, y)
             CheckWin()
-        else: #initial sweep
-            GenerateGrid(x, y)
-            DisplayGrid()
-            playing = True
-            UpdateTimer(0)
-    if key.keycode == 8: #backspace
-        print("FLAG")
-
-        crds = gameArea.coords(cursor)
-        x = math.floor(crds[1] / 80)
-        y = math.floor(crds[0] / 80)
-        FlagTile(x, y)
-        CheckWin()
 
 def KeyRelease(key):
 
@@ -206,6 +216,12 @@ def Move():
         crds = gameArea.coords(cursor)
         x = crds[0] + 8 * (movement[3] - movement[1])
         y = crds[1] + 8 * (movement[2] - movement[0])
+
+        if x < 0 or x > 640:
+            x = crds[0]
+        if y < 0 or y > 640:
+            y = crds[1]
+            
         gameArea.coords(cursor, x, y)
         #canvas.coords(sweeper, x, y)
     window.after(50, Move)
@@ -247,6 +263,7 @@ def UpdateTimer(time):
 window = tk.Tk()
 window.title = "Minesweeper"
 window.geometry("640x680") #wxh
+window.configure(bg='#001703')
 
 tile = tk.PhotoImage(file="tile.png")
 flag = tk.PhotoImage(file="flag.png")
