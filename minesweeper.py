@@ -100,13 +100,18 @@ def SweepTile(x, y):
     if gridMask[x][y] == 1: #if tile alreadys sweeped
         return
 
-    gridMask[x][y] = 1
-    canvas.delete(tileGrid[x][y])
-    if grid[x][y] == -1:
-        canvas.tag_raise(textGrid[x][y]) #temp
+    if gridMask[x][y] == -1: #if tile flagged
+        global flags
+        flags += 1
+        scoreArea.itemconfig(flagText, text="Flags: " + str(flags))
+
+    gridMask[x][y] = 1 #sweep
+
+    gameArea.delete(tileGrid[x][y])
+    if grid[x][y] == -1: #loss condition
         print("BOOM!")
-        global active
-        active = False
+        global paused
+        paused = True
         return
     
     if grid[x][y] == 0: #if blank tile, ripple
@@ -118,18 +123,19 @@ def SweepTile(x, y):
                     continue
                 SweepTile(x +deltaX, y +deltaY) #ripple
     else:
-        canvas.tag_raise(textGrid[x][y])
-
-        
-
+        gameArea.tag_raise(textGrid[x][y])
 
 def FlagTile(x, y):
-    if gridMask[x][y] == 0:
+    global flags
+    if gridMask[x][y] == 0 and flags > 0:
         gridMask[x][y] = -1
-        canvas.itemconfig(tileGrid[x][y], image=flag)
+        gameArea.itemconfig(tileGrid[x][y], image=flag)
+        flags -= 1
     elif gridMask[x][y] == -1:
         gridMask[x][y] = 0
-        canvas.itemconfig(tileGrid[x][y], image=tile)
+        gameArea.itemconfig(tileGrid[x][y], image=tile)
+        flags += 1
+    scoreArea.itemconfig(flagText, text="Flags: " + str(flags))
 
 ## INTERACTION ##################
 
@@ -148,7 +154,7 @@ def KeyPress(key):
         global playing
         print("SWEEP")
 
-        crds = canvas.coords(cursor)
+        crds = gameArea.coords(cursor)
         x = math.floor(crds[1] / 80)
         y = math.floor(crds[0] / 80)
         if playing:
@@ -157,15 +163,14 @@ def KeyPress(key):
             GenerateGrid(x, y)
             DisplayGrid()
             playing = True
+            UpdateTimer(0)
     if key.keycode == 8: #backspace
         print("FLAG")
 
-        crds = canvas.coords(cursor)
+        crds = gameArea.coords(cursor)
         x = math.floor(crds[1] / 80)
         y = math.floor(crds[0] / 80)
         FlagTile(x, y)
-
-    Move()
 
 def KeyRelease(key):
 
@@ -179,16 +184,19 @@ def KeyRelease(key):
         movement[3] = 0
 
 def Move():
-    if active:
-        crds = canvas.coords(cursor)
+    if not paused:
+        crds = gameArea.coords(cursor)
         x = crds[0] + 8 * (movement[3] - movement[1])
         y = crds[1] + 8 * (movement[2] - movement[0])
-        canvas.coords(cursor, x, y)
+        gameArea.coords(cursor, x, y)
         #canvas.coords(sweeper, x, y)
+    window.after(50, Move)
 
-def MouseMove(event):
-    x, y = event.x, event.y
-    canvas.coords(cursor, x, y)
+def MouseMove(mouse):
+    if not paused:
+        x = mouse.x
+        y = mouse.y
+        gameArea.coords(cursor, x, y)
 
 ## INTERFACE ####################
 
@@ -200,34 +208,45 @@ def DisplayGrid():
             #display numbers and bombs
             if grid[r][c] != 0:
                 if grid[r][c] == -1:
-                    text = canvas.create_text(41 + c*80, 41 + r*80, text="💣", fill="#13e843")
+                    text = gameArea.create_text(40 + c*80, 40 + r*80, text="💣", fill="#13e843")
                 else:
-                    text = canvas.create_text(41 + c*80, 41 + r*80, text=str(grid[r][c]), fill="#13e843")
-                canvas.tag_lower(text)
+                    text = gameArea.create_text(40 + c*80, 40 + r*80, text=str(grid[r][c]), fill="#13e843")
+                gameArea.tag_lower(text)
                 textGrid[r][c] = text
 
             #reveal visible values
             if gridMask[r][c] == 1:
-                canvas.delete(tileGrid[r][c])
+                gameArea.delete(tileGrid[r][c])
                 if textGrid[r][c] != None:
-                    canvas.tag_raise(textGrid[r][c])
+                    gameArea.tag_raise(textGrid[r][c])
+
+def UpdateTimer(time):
+    if not paused:
+        time += 1
+        scoreArea.itemconfigure(timerText, text="Time: " + str(time))
+    window.after(1000, UpdateTimer, time)
 
 window = tk.Tk()
 window.title = "Minesweeper"
-window.geometry("640x640")
+window.geometry("640x680") #wxh
 
 tile = tk.PhotoImage(file="tile.png")
 flag = tk.PhotoImage(file="flag.png")
 crss = tk.PhotoImage(file="crosshair.png")
-swpr = tk.PhotoImage(file="spinner.png")
+#swpr = tk.PhotoImage(file="spinner.png")
 
-canvas = tk.Canvas(window, width=640, height=640, bg='#001703')
+gameArea = tk.Canvas(window, width=640, height=640, bg='#001703', highlightthickness=3, highlightbackground='#06611b')
+scoreArea = tk.Canvas(window, width=640, height=40, bg='#001703', highlightthickness=0)
 
 tileGrid = [[None for c in range(8)] for r in range(8)]
 textGrid = [[None for c in range(8)] for r in range(8)]
 for r in range(8):
     for c in range(8):
-        tileGrid[r][c] = canvas.create_image(41 + c*80, 41 + r*80, image=tile)
+        tileGrid[r][c] = gameArea.create_image(40 + c*80, 40 + r*80, image=tile)
+
+timerText = scoreArea.create_text(580, 20, text="Time: 0", fill="#13e843")
+flags = 0
+flagText = scoreArea.create_text(500, 20, text="Flags: " + str(flags), fill="#13e843")
 
 movement = [0, 0, 0, 0,]
 
@@ -235,8 +254,9 @@ window.bind("<KeyPress>", KeyPress)
 window.bind("<KeyRelease>", KeyRelease)
 window.bind('<Motion>', MouseMove)
 
-canvas.pack()
-cursor = canvas.create_image(320, 320, image=crss)
+scoreArea.pack()
+gameArea.pack()
+cursor = gameArea.create_image(320, 320, image=crss)
 #sweeper = canvas.create_image(320, 320, image=swpr)
 
 ## MAIN #########################        
@@ -245,9 +265,12 @@ l = 8
 grid = [[0 for i in range(l)] for i in range(l)] #holds locations of bombs and number indicators
 gridMask = [[0 for i in range(l)] for i in range(l)] #stores which tiles are 'visible' to the user 
 numberOfBombs = int(l*l / 8)
+flags = numberOfBombs
+scoreArea.itemconfig(flagText, text="Flags: " + str(flags))
 
 playing = False
-active = True
+paused = False
 mouseControls = True
 
+Move()
 window.mainloop()
