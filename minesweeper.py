@@ -114,8 +114,8 @@ def SweepTile(x, y):
     gridMask[x][y] = 1 #sweep
     global tiles
     tiles -= 1
-
     gameArea.delete(tileGrid[x][y])
+
     if grid[x][y] == -1: #loss condition
         print("BOOM!")
         global paused
@@ -223,7 +223,7 @@ def Move():
             y = crds[1]
             
         gameArea.coords(cursor, x, y)
-        #canvas.coords(sweeper, x, y)
+        gameArea.coords(sweeper, x, y)
     window.after(50, Move)
 
 def MouseMove(mouse):
@@ -231,6 +231,7 @@ def MouseMove(mouse):
         x = mouse.x
         y = mouse.y
         gameArea.coords(cursor, x, y)
+        gameArea.coords(sweeper, x, y)
 
 ## INTERFACE ####################
 
@@ -260,6 +261,15 @@ def UpdateTimer(time):
         scoreArea.itemconfigure(timerText, text="Time: " + str(time))
     window.after(1000, UpdateTimer, time)
 
+def Spin(angle):
+    if not paused:   
+        temp = int((angle / 90) % 4)
+        global swpr
+        swpr = tk.PhotoImage(file="spinner" + str(temp) + ".png")
+        gameArea.itemconfig(sweeper, image=swpr)
+        angle += 90
+    window.after(500, Spin, angle)
+
 window = tk.Tk()
 window.title = "Minesweeper"
 window.geometry("640x680") #wxh
@@ -268,9 +278,9 @@ window.configure(bg='#001703')
 tile = tk.PhotoImage(file="tile.png")
 flag = tk.PhotoImage(file="flag.png")
 crss = tk.PhotoImage(file="crosshair.png")
-#swpr = tk.PhotoImage(file="spinner.png")
+swpr = tk.PhotoImage(file="spinner0.png")
 
-gameArea = tk.Canvas(window, width=640, height=640, bg='#001703', highlightthickness=3, highlightbackground='#06611b')
+gameArea = tk.Canvas(window, width=635, height=635, bg='#001703', highlightthickness=5, highlightbackground='#06611b')
 scoreArea = tk.Canvas(window, width=640, height=40, bg='#001703', highlightthickness=0)
 
 tileGrid = [[None for c in range(8)] for r in range(8)]
@@ -292,7 +302,7 @@ window.bind('<Motion>', MouseMove)
 scoreArea.pack()
 gameArea.pack()
 cursor = gameArea.create_image(320, 320, image=crss)
-#sweeper = canvas.create_image(320, 320, image=swpr)
+sweeper = gameArea.create_image(320, 320, image=swpr)
 
 ## MAIN #########################        
 
@@ -310,4 +320,5 @@ paused = False
 mouseControls = True
 
 Move()
+Spin(0)
 window.mainloop()
