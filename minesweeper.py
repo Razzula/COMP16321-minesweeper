@@ -1,6 +1,7 @@
 import random
 import math
 import tkinter as tk
+from tkinter.font import BOLD
 
 ## LOGIC ########################
 
@@ -117,9 +118,7 @@ def SweepTile(x, y):
     gameArea.delete(tileGrid[x][y])
 
     if grid[x][y] == -1: #loss condition
-        print("BOOM!")
-        global paused
-        paused = True
+        GameOver(False)
         return
     
     if grid[x][y] == 0: #if blank tile, ripple
@@ -137,34 +136,34 @@ def FlagTile(x, y):
     global flags
     if gridMask[x][y] == 0 and flags > 0:
         gridMask[x][y] = -1
-        gameArea.itemconfig(tileGrid[x][y], image=flag)
+        text = gameArea.create_text(40 + y*80, 40 + x*80, text="!", fill="red", font=('Helvetica', 16, 'bold'))
+        flagGrid[x][y] = text
         flags -= 1
 
     elif gridMask[x][y] == -1:
         gridMask[x][y] = 0
-        gameArea.itemconfig(tileGrid[x][y], image=tile)
+        gameArea.delete(flagGrid[x][y])
         flags += 1
     scoreArea.itemconfig(flagText, text="Flags: " + str(flags))
 
 def CheckWin():
     if flags == 0:
         if tiles == numberOfBombs:
-            print("YAAY!")
-            global paused
-            paused = True
+            GameOver(True)
 
 ## INTERACTION ##################
 
 def KeyPress(key):
 
     if key.keycode == 27: #esc
-        global paused
-        paused = not paused
-        
-        if paused:
-            gameArea.pack_forget()
-        else:
-            gameArea.pack()
+        if active:
+            global paused
+            paused = not paused
+            
+            if paused:
+                gameArea.pack_forget()
+            else:
+                gameArea.pack()
 
     if key.keycode == 87 or key.keycode == 38: #w, uparrow
         movement[0] = 1
@@ -177,20 +176,20 @@ def KeyPress(key):
 
     if not paused:
         if key.keycode == 13: #enter
-            global playing
+            global firstSweep
             print("SWEEP")
 
             crds = gameArea.coords(cursor)
             x = math.floor(crds[1] / 80)
             y = math.floor(crds[0] / 80)
-            if playing:
-                SweepTile(x, y)
-                CheckWin()
-            else: #initial sweep
+            if firstSweep:
                 GenerateGrid(x, y)
                 DisplayGrid()
-                playing = True
+                firstSweep = False
                 UpdateTimer(0)
+            else:     
+                SweepTile(x, y)
+                CheckWin()
         if key.keycode == 8: #backspace
             print("FLAG")
 
@@ -243,7 +242,7 @@ def DisplayGrid():
             #display numbers and bombs
             if grid[r][c] != 0:
                 if grid[r][c] == -1:
-                    text = gameArea.create_text(40 + c*80, 40 + r*80, text="💣", fill="#13e843")
+                    text = gameArea.create_text(40 + c*80, 40 + r*80, text="💣", fill="red")
                 else:
                     text = gameArea.create_text(40 + c*80, 40 + r*80, text=str(grid[r][c]), fill="#13e843")
                 gameArea.tag_lower(text)
@@ -254,6 +253,41 @@ def DisplayGrid():
                 gameArea.delete(tileGrid[r][c])
                 if textGrid[r][c] != None:
                     gameArea.tag_raise(textGrid[r][c])
+
+def GameOver(won):
+    global paused
+    global active
+    paused = True
+    active = False
+
+    # frame = tk.Frame(window, height=320, width=240)
+    # frame.place(x=200, y=160)
+
+    text = scoreArea.create_text(320, 20, text="GAME OVER", fill="#13e843")
+
+    if won:
+        print("YAAY!")
+        DisplayEndMenu(True)
+    else:
+        print("BOOM!")
+        #gameArea.destroy()
+        
+        for x in range(l):
+            for y in range(l):
+                if grid[x][y] == -1:
+                    gameArea.tag_raise(textGrid[x][y])
+        window.after(2000, DisplayEndMenu, False)
+    
+    #gameArea.create_image(320, 280, image=menu)
+
+def DisplayEndMenu(won):
+    endMenu = tk.Canvas(window, height=320, width=240, bg="#002305", highlightthickness=0)
+    endMenu.place(x=200, y=160)
+
+    if won:
+        endMenu.create_text(120, 20, text="VICTORY", fill="#13e843")
+    else:
+        endMenu.create_text(120, 20, text="DEFEAT", fill="#13e843")
 
 def UpdateTimer(time):
     if not paused:
@@ -270,19 +304,20 @@ def Spin(angle):
         angle -= 10
     window.after(40, Spin, angle)
 
+
 window = tk.Tk()
 window.title = "Minesweeper"
 window.geometry("640x680") #wxh
 window.configure(bg='#001703')
 
 tile = tk.PhotoImage(file="tile.png")
-flag = tk.PhotoImage(file="flag.png")
 crss = tk.PhotoImage(file="crosshair.png")
 
 gameArea = tk.Canvas(window, width=635, height=635, bg='#001703', highlightthickness=5, highlightbackground='#06611b')
 scoreArea = tk.Canvas(window, width=640, height=40, bg='#001703', highlightthickness=0)
 
 tileGrid = [[None for c in range(8)] for r in range(8)]
+flagGrid = [[None for c in range(8)] for r in range(8)]
 textGrid = [[None for c in range(8)] for r in range(8)]
 for r in range(8):
     for c in range(8):
@@ -313,8 +348,9 @@ numberOfBombs = int(tiles / 8)
 flags = numberOfBombs
 scoreArea.itemconfig(flagText, text="Flags: " + str(flags))
 
-playing = False
+firstSweep = True
 paused = False
+active = True
 mouseControls = True
 
 sweeper = gameArea.create_arc(320-126, 320-126, 320+126, 320+126, start=90, extent=90, outline="#0f3e15", fill="#0f3e15", width=4)
