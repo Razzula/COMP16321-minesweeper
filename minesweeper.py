@@ -223,7 +223,7 @@ def Move():
             y = crds[1]
             
         gameArea.coords(cursor, x, y)
-        gameArea.coords(sweeper, x, y)
+        gameArea.coords(sweeper, x-126, y-126, x+126, y+126)
     window.after(50, Move)
 
 def MouseMove(mouse):
@@ -231,7 +231,7 @@ def MouseMove(mouse):
         x = mouse.x
         y = mouse.y
         gameArea.coords(cursor, x, y)
-        gameArea.coords(sweeper, x, y)
+        gameArea.coords(sweeper, x-126, y-126, x+126, y+126)
 
 ## INTERFACE ####################
 
@@ -262,13 +262,13 @@ def UpdateTimer(time):
     window.after(1000, UpdateTimer, time)
 
 def Spin(angle):
-    if not paused:   
-        temp = int((angle / 90) % 4)
-        global swpr
-        swpr = tk.PhotoImage(file="spinner" + str(temp) + ".png")
-        gameArea.itemconfig(sweeper, image=swpr)
-        angle += 90
-    window.after(500, Spin, angle)
+    if not paused:
+        crds = gameArea.coords(cursor)
+        x = crds[0]
+        y = crds[1]
+        gameArea.itemconfig(sweeper, start=angle)
+        angle -= 10
+    window.after(40, Spin, angle)
 
 window = tk.Tk()
 window.title = "Minesweeper"
@@ -278,7 +278,6 @@ window.configure(bg='#001703')
 tile = tk.PhotoImage(file="tile.png")
 flag = tk.PhotoImage(file="flag.png")
 crss = tk.PhotoImage(file="crosshair.png")
-swpr = tk.PhotoImage(file="spinner0.png")
 
 gameArea = tk.Canvas(window, width=635, height=635, bg='#001703', highlightthickness=5, highlightbackground='#06611b')
 scoreArea = tk.Canvas(window, width=640, height=40, bg='#001703', highlightthickness=0)
@@ -302,7 +301,6 @@ window.bind('<Motion>', MouseMove)
 scoreArea.pack()
 gameArea.pack()
 cursor = gameArea.create_image(320, 320, image=crss)
-sweeper = gameArea.create_image(320, 320, image=swpr)
 
 ## MAIN #########################        
 
@@ -318,6 +316,8 @@ scoreArea.itemconfig(flagText, text="Flags: " + str(flags))
 playing = False
 paused = False
 mouseControls = True
+
+sweeper = gameArea.create_arc(320-126, 320-126, 320+126, 320+126, start=90, extent=90, outline="#0f3e15", fill="#0f3e15", width=4)
 
 Move()
 Spin(0)
