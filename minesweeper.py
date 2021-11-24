@@ -220,9 +220,29 @@ def KeyPress(key):
                 print("restart")
                 scoreArea.pack_forget()
                 gameArea.destroy()
-                #gameArea.pack_forget()
                 endMenu.place_forget()
                 startMenu.pack()
+
+                try:
+                    leaderboard = []
+                    file = open("leaderboard.txt", "r")
+                    data = file.readlines()
+                    for line in data:
+                        leaderboard.append(line.split())
+                    file.close()
+
+                    leaderboard.append([playerName, str(numberOfBombsFound), str(time)])
+
+                    file = open("leaderboard.txt", "w")
+                    for item in leaderboard:
+                        file.write(item[0] + " " + item[1] + " " + item[2] + "\n")
+                    file.close()
+
+                except:
+                    file = open("leaderboard.txt", "w")
+                    file.write(playerName + " " + str(numberOfBombsFound) + " " + str(time))
+                    file.close()
+
 
 def KeyRelease(key):
 
@@ -292,8 +312,10 @@ def GameOver(won):
     text = scoreArea.create_text(320, 20, text="GAME OVER", fill="#13e843")
     window.after(2000, DeleteItem, text)
 
+    global numberOfBombsFound
     if won:
         print("YAAY!")
+        numberOfBombsFound = numberOfBombs
         DisplayEndMenu(True, numberOfBombs)
     else:
         print("BOOM!")
