@@ -294,7 +294,7 @@ def GameOver(won):
 
     if won:
         print("YAAY!")
-        DisplayEndMenu(True)
+        DisplayEndMenu(True, numberOfBombs)
     else:
         print("BOOM!")
         numberOfBombsFound = 0
