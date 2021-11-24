@@ -248,7 +248,8 @@ def Move():
             
         gameArea.coords(cursor, x, y)
         gameArea.coords(sweeper, x-126, y-126, x+126, y+126)
-    window.after(50, Move)
+    if active:
+        window.after(50, Move)
 
 def MouseMove(mouse):
     if not paused:
@@ -337,7 +338,8 @@ def UpdateTimer():
         global time
         time += 1
         scoreArea.itemconfigure(timerText, text="Time: " + str(time))
-    window.after(1000, UpdateTimer)
+    if active:
+        window.after(1000, UpdateTimer)
 
 def Spin(angle):
     if not paused:
@@ -360,8 +362,6 @@ crss = tk.PhotoImage(file="crosshair.png")
 scoreArea = tk.Canvas(window, width=640, height=40, bg='#001703', highlightthickness=0)
 
 tileGrid = [[None for c in range(8)] for r in range(8)]
-flagGrid = [[None for c in range(8)] for r in range(8)]
-textGrid = [[None for c in range(8)] for r in range(8)]
 
 timerText = scoreArea.create_text(580, 20, text="Time: 0", fill="#13e843")
 flagText = scoreArea.create_text(500, 20, text="Flags: ", fill="#13e843")
@@ -396,7 +396,11 @@ def StartGame():
     global grid
     grid = [[0 for i in range(l)] for i in range(l)] #holds locations of bombs and number indicators
     global gridMask
-    gridMask = [[0 for i in range(l)] for i in range(l)] #stores which tiles are 'visible' to the user 
+    gridMask = [[0 for i in range(l)] for i in range(l)] #stores which tiles are 'visible' to the user
+    global flagGrid
+    flagGrid = [[None for c in range(8)] for r in range(8)]
+    global textGrid
+    textGrid = [[None for c in range(8)] for r in range(8)]
 
     global tiles
     tiles = l*l
@@ -411,7 +415,8 @@ def StartGame():
     playerName =  ''
 
     global time
-    time = 0
+    time = -1
+    scoreArea.itemconfig(timerText, text="Time: 0")
 
     global paused
     paused = False
