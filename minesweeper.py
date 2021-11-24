@@ -231,16 +231,25 @@ def KeyPress(key):
                         leaderboard.append(line.split())
                     file.close()
 
-                    leaderboard.append([playerName, str(numberOfBombsFound), str(time)])
+                    #insert new score
+                    for i in range(len(leaderboard)):
+                        if int(leaderboard[i][1]) == numberOfBombsFound:
+                            if numberOfBombsFound > int(leaderboard[i][2]):
+                                leaderboard.insert(i, [playerName, numberOfBombsFound, time])
+                                break
+                        elif int(leaderboard[i][1]) < numberOfBombsFound:
+                            leaderboard.insert(i, [playerName, numberOfBombsFound, time])
+                            break
 
                     file = open("leaderboard.txt", "w")
-                    for item in leaderboard:
-                        file.write(item[0] + " " + item[1] + " " + item[2] + "\n")
+                    for i in range(len(leaderboard)):
+                        if i < 5:
+                            file.write(leaderboard[i][0] + " " + str(leaderboard[i][1]) + " " + str(leaderboard[i][2]) + "\n")
                     file.close()
 
                 except:
                     file = open("leaderboard.txt", "w")
-                    file.write(playerName + " " + str(numberOfBombsFound) + " " + str(time))
+                    file.write(playerName + " " + str(numberOfBombsFound) + " " + str(time) + "\n___ 0 999"*4)
                     file.close()
 
 
@@ -457,7 +466,9 @@ def StartGame():
 startMenu = tk.Canvas(window, height=320, width=240, bg='#002305', highlightthickness=0)
 startMenu.pack()
 
-button = tk.Button(startMenu, command=StartGame)
-button.pack()
+tk.Button(startMenu, text="START", command=StartGame).pack()
+tk.Button(startMenu, text="LEADERBOARD", command=None).pack()
+tk.Button(startMenu, text="SETTINGS", command=None).pack()
+tk.Button(startMenu, text="QUIT", command=quit).pack()
 
 window.mainloop()
