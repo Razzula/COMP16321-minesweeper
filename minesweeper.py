@@ -155,7 +155,6 @@ def CheckWin():
 
 def KeyPress(key):
 
-    
     global active
     global firstSweep
     if active: #gameplay
@@ -211,7 +210,6 @@ def KeyPress(key):
                 pauseMenu.place_forget()
                 startMenu.pack()
 
-
     elif firstSweep == False: #endScreen
         global playerName
         if key.keycode == 8:
@@ -229,6 +227,8 @@ def KeyPress(key):
             endMenu.itemconfig(endPromptText, text = "[ PRESS ENTER TO CONTINUE ]")
             if key.keycode == 13:
                 print("restart")
+                active = False
+                firstSweep = True
                 scoreArea.pack_forget()
                 gameArea.destroy()
                 endMenu.place_forget()
@@ -265,12 +265,11 @@ def KeyPress(key):
         
     else:
         try:
-            leaderboardMenu.pack_forget()
-            #settingsMenu.pack_forget()
+            leaderboardMenu.place_forget()
+            settingsMenu.place_forget()
             startMenu.pack()
         except:
             startMenu.pack()
-
 
 def KeyRelease(key):
 
@@ -300,11 +299,15 @@ def Move():
         window.after(50, Move)
 
 def MouseMove(mouse):
-    if not paused:
+    if not paused and mouseControls:
         x = mouse.x
         y = mouse.y
         gameArea.coords(cursor, x, y)
         gameArea.coords(sweeper, x-126, y-126, x+126, y+126)
+
+def ToggleMouseControls():
+    global mouseControls
+    mouseControls = not mouseControls
 
 ## INTERFACE ####################
 
@@ -400,8 +403,20 @@ def DisplayLeaderboard():
     leaderboardMenu.create_text(120, 300, text="[ PRESS BACKSPACE TO RETURN ]", fill="#13e843")
 
     startMenu.pack_forget()
-    leaderboardMenu.pack()
+    leaderboardMenu.place(x=200, y=160)
 
+def DisplaySettings():
+    global settingsMenu
+    settingsMenu = tk.Canvas(window, height=320, width=240, bg="#002305", highlightthickness=0)
+    settingsMenu.create_text(120, 20, text="SETTINGS", fill="#13e843")
+
+    button = tk.Button(settingsMenu, text="MOUSE CONTROLS", command=ToggleMouseControls).place(x=65, y=80)
+    
+
+    settingsMenu.create_text(120, 300, text="[ PRESS BACKSPACE TO RETURN ]", fill="#13e843")
+
+    startMenu.pack_forget()
+    settingsMenu.place(x=200, y=160)
 
 def UpdateTimer():
     if not paused:
@@ -503,7 +518,7 @@ startMenu.pack()
 
 tk.Button(startMenu, text="START", command=StartGame).pack()
 tk.Button(startMenu, text="LEADERBOARD", command=DisplayLeaderboard).pack()
-tk.Button(startMenu, text="SETTINGS", command=None).pack()
+tk.Button(startMenu, text="SETTINGS", command=DisplaySettings).pack()
 tk.Button(startMenu, text="QUIT", command=quit).pack()
 
 paused = True
@@ -513,5 +528,7 @@ firstSweep = True
 window.bind("<KeyPress>", KeyPress)
 window.bind("<KeyRelease>", KeyRelease)
 window.bind('<Motion>', MouseMove)
+
+leaderboardMenu = tk.Canvas()
 
 window.mainloop()
