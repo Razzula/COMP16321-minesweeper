@@ -305,9 +305,14 @@ def MouseMove(mouse):
         gameArea.coords(cursor, x, y)
         gameArea.coords(sweeper, x-126, y-126, x+126, y+126)
 
-def ToggleMouseControls():
+def ToggleMouseControls(button):
     global mouseControls
     mouseControls = not mouseControls
+
+    if mouseControls:
+        button.configure(fg="#13e843", activeforeground="red")
+    else:
+        button.configure(fg="red", activeforeground="#13e843")
 
 ## INTERFACE ####################
 
@@ -389,7 +394,7 @@ def CreatePauseMenu():
     pauseMenu = tk.Canvas(window, height=320, width=240, bg="#002305", highlightthickness=0)
     pauseMenu.create_text(120, 20, text="PAUSED", fill="#13e843")
 
-    button = tk.Button(pauseMenu, text="SAVE", command=Save).place(x=100, y=80)
+    tk.Button(pauseMenu, text="SAVE", command=Save, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=100, y=80)
 
     pauseMenu.create_text(120, 280, text="[ PRESS ESC TO UNPAUSE ]", fill="#13e843")
     pauseMenu.create_text(120, 300, text="[ PRESS BACKSPACE TO QUIT ]", fill="#13e843")
@@ -416,7 +421,14 @@ def DisplaySettings():
     settingsMenu = tk.Canvas(window, height=320, width=240, bg="#002305", highlightthickness=0)
     settingsMenu.create_text(120, 20, text="SETTINGS", fill="#13e843")
 
-    button = tk.Button(settingsMenu, text="MOUSE CONTROLS", command=ToggleMouseControls).place(x=65, y=80)
+    button = tk.Button(settingsMenu, text="MOUSE CONTROLS", bg="#002305", activebackground="#002305", bd=1)
+    if mouseControls:
+        button.configure(fg="#13e843", activeforeground="red")
+    else:
+        button.configure(fg="red", activeforeground="#13e843")
+        
+    button.configure(command=lambda: ToggleMouseControls(button))
+    button.place(x=65, y=80)
     
     settingsMenu.create_text(120, 300, text="[ PRESS BACKSPACE TO RETURN ]", fill="#13e843")
 
@@ -476,6 +488,7 @@ def Save():
 window = tk.Tk()
 window.title = "Minesweeper"
 window.geometry("640x680") #wxh
+window.maxsize(640, 680)
 window.configure(bg='#001703')
 
 tile = tk.PhotoImage(file="tile.png")
@@ -600,19 +613,21 @@ def StartGame():
     global active
     active = True
 
+    window.maxsize(80*l, 80*l + 40)
+
     Move()
     Spin(0)
 
 startMenu = tk.Canvas(window, height=320, width=240, bg='#002305', highlightthickness=0)
 startMenu.place(x=200, y=160)
 
-tk.Button(startMenu, text="NEW GAME", command=NewGame).place(x=0,y=0)
-tk.Button(startMenu, text="LOAD GAME", command=LoadGame).place(x=0,y=40)
+tk.Button(startMenu, text="NEW GAME", command=NewGame, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=0)
+tk.Button(startMenu, text="LOAD GAME", command=LoadGame, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=40)
 codeInput = tk.Entry(startMenu)
 codeInput.place(x=0,y=80)
-tk.Button(startMenu, text="LEADERBOARD", command=DisplayLeaderboard).place(x=0,y=120)
-tk.Button(startMenu, text="SETTINGS", command=DisplaySettings).place(x=0,y=160)
-tk.Button(startMenu, text="QUIT", command=quit).place(x=0,y=200)
+tk.Button(startMenu, text="LEADERBOARD", command=DisplayLeaderboard, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=120)
+tk.Button(startMenu, text="SETTINGS", command=DisplaySettings, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=160)
+tk.Button(startMenu, text="QUIT", command=quit, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="red", bd=1).place(x=0,y=200)
 
 paused = True
 active = False
