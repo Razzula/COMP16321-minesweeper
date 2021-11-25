@@ -155,6 +155,9 @@ def CheckWin():
 
 def KeyPress(key):
 
+    
+    global active
+    global firstSweep
     if active: #gameplay
         if key.keycode == 27: #esc
             global paused
@@ -178,7 +181,6 @@ def KeyPress(key):
 
         if not paused:
             if key.keycode == 13: #enter
-                global firstSweep
                 print("SWEEP")
 
                 crds = gameArea.coords(cursor)
@@ -200,8 +202,17 @@ def KeyPress(key):
                 y = math.floor(crds[0] / 80)
                 FlagTile(x, y)
                 CheckWin()
+        else:
+            if key.keycode == 8: #backspace
+                active = False
+                firstSweep = True
+                scoreArea.pack_forget()
+                gameArea.destroy()
+                pauseMenu.place_forget()
+                startMenu.pack()
 
-    else: #endScreen
+
+    elif firstSweep == False: #endScreen
         global playerName
         if key.keycode == 8:
             playerName = playerName[0:-1]
@@ -251,6 +262,14 @@ def KeyPress(key):
                     file = open("leaderboard.txt", "w")
                     file.write(playerName + " " + str(numberOfBombsFound) + " " + str(time) + "\n___ 0 999"*4)
                     file.close()
+        
+    else:
+        try:
+            leaderboardMenu.pack_forget()
+            #settingsMenu.pack_forget()
+            startMenu.pack()
+        except:
+            startMenu.pack()
 
 
 def KeyRelease(key):
@@ -363,6 +382,26 @@ def CreatePauseMenu():
     global pauseMenu
     pauseMenu = tk.Canvas(window, height=320, width=240, bg="#002305", highlightthickness=0)
     pauseMenu.create_text(120, 20, text="PAUSED", fill="#13e843")
+    pauseMenu.create_text(120, 280, text="[ PRESS ESC TO UNPAUSE ]", fill="#13e843")
+    pauseMenu.create_text(120, 300, text="[ PRESS BACKSPACE TO QUIT ]", fill="#13e843")
+
+def DisplayLeaderboard():
+    global leaderboardMenu
+    leaderboardMenu = tk.Canvas(window, height=320, width=240, bg="#002305", highlightthickness=0)
+    leaderboardMenu.create_text(120, 20, text="LEADERBOARD", fill="#13e843")
+
+    file = open("leaderboard.txt", "r")
+    data = file.readlines()
+    for i in range(len(data)):
+        line = data[i].split()
+        if line[0] == "___":
+            line[2] = "0"
+        leaderboardMenu.create_text(120, 80 + (i * 30), text=line[0] + " " + line[1] + " " + line[2], fill="#13e843")
+    leaderboardMenu.create_text(120, 300, text="[ PRESS BACKSPACE TO RETURN ]", fill="#13e843")
+
+    startMenu.pack_forget()
+    leaderboardMenu.pack()
+
 
 def UpdateTimer():
     if not paused:
@@ -456,10 +495,6 @@ def StartGame():
     global active
     active = True
 
-    window.bind("<KeyPress>", KeyPress)
-    window.bind("<KeyRelease>", KeyRelease)
-    window.bind('<Motion>', MouseMove)
-
     Move()
     Spin(0)
 
@@ -467,8 +502,16 @@ startMenu = tk.Canvas(window, height=320, width=240, bg='#002305', highlightthic
 startMenu.pack()
 
 tk.Button(startMenu, text="START", command=StartGame).pack()
-tk.Button(startMenu, text="LEADERBOARD", command=None).pack()
+tk.Button(startMenu, text="LEADERBOARD", command=DisplayLeaderboard).pack()
 tk.Button(startMenu, text="SETTINGS", command=None).pack()
 tk.Button(startMenu, text="QUIT", command=quit).pack()
+
+paused = True
+active = False
+firstSweep = True
+
+window.bind("<KeyPress>", KeyPress)
+window.bind("<KeyRelease>", KeyRelease)
+window.bind('<Motion>', MouseMove)
 
 window.mainloop()
