@@ -208,7 +208,7 @@ def KeyPress(key):
                 scoreArea.pack_forget()
                 gameArea.destroy()
                 pauseMenu.place_forget()
-                startMenu.pack()
+                startMenu.place(x=200, y=160)
 
     elif firstSweep == False: #endScreen
         global playerName
@@ -232,7 +232,7 @@ def KeyPress(key):
                 scoreArea.pack_forget()
                 gameArea.destroy()
                 endMenu.place_forget()
-                startMenu.pack()
+                startMenu.place(x=200, y=160)
 
                 try:
                     leaderboard = []
@@ -267,9 +267,9 @@ def KeyPress(key):
         try:
             leaderboardMenu.place_forget()
             settingsMenu.place_forget()
-            startMenu.pack()
+            startMenu.place(x=200, y=160)
         except:
-            startMenu.pack()
+            startMenu.place(x=200, y=160)
 
 def KeyRelease(key):
 
@@ -330,6 +330,9 @@ def DisplayGrid():
                 gameArea.delete(tileGrid[r][c])
                 if textGrid[r][c] != None:
                     gameArea.tag_raise(textGrid[r][c])
+            elif gridMask[r][c] == -1: #only used during LOAD, not NEW game
+                gridMask[r][c] = 0
+                FlagTile(r, c)
 
 def DeleteItem(item, canvas):
     canvas.delete(item)
@@ -405,7 +408,7 @@ def DisplayLeaderboard():
         leaderboardMenu.create_text(120, 80 + (i * 30), text=line[0] + " " + line[1] + " " + line[2], fill="#13e843")
     leaderboardMenu.create_text(120, 300, text="[ PRESS BACKSPACE TO RETURN ]", fill="#13e843")
 
-    startMenu.pack_forget()
+    startMenu.place_forget()
     leaderboardMenu.place(x=200, y=160)
 
 def DisplaySettings():
@@ -417,7 +420,7 @@ def DisplaySettings():
     
     settingsMenu.create_text(120, 300, text="[ PRESS BACKSPACE TO RETURN ]", fill="#13e843")
 
-    startMenu.pack_forget()
+    startMenu.place_forget()
     settingsMenu.place(x=200, y=160)
 
 def UpdateTimer():
@@ -491,6 +494,63 @@ mouseControls = True
 
 CreatePauseMenu()
 
+def NewGame():
+
+    global l
+    l = 8
+    global score
+    score = -1
+
+    StartGame()
+
+    global firstSweep 
+    firstSweep = True
+
+def LoadGame():
+
+    #search for save
+    try:
+        code = codeInput.get()
+        file = open("./saves/" + code + ".txt", "r")
+    except:
+        text = startMenu.create_text(120, 110, text="SAVE NOT FOUND", fill="red")
+        window.after(1000, DeleteItem, text, startMenu)
+        return
+
+    code = codeInput.get()
+    file = open("./saves/" + code + ".txt", "r")
+
+    data = file.readlines()
+    line = data[0].split()
+
+    global l
+    l = int(line[0])
+    global score
+    score = int(line[1]) -1
+    
+    StartGame()
+
+    global grid
+    global gridMask
+
+    #grid
+    for x in range(l):
+        line = data[x+1].split()
+        for y in range(l):
+            grid[x][y] = int(line[y])
+
+    #gridMask
+    for x in range(l):
+        line = data[x+1+l].split()
+        for y in range(l):
+            gridMask[x][y] = int(line[y])
+    
+    global firstSweep 
+    firstSweep = False
+
+    DisplayGrid()
+    UpdateTimer()
+
 def StartGame():
     global gameArea
     gameArea = tk.Canvas(window, width=635, height=635, bg='#001703', highlightthickness=5, highlightbackground='#06611b')
@@ -498,7 +558,7 @@ def StartGame():
         for c in range(8):
             tileGrid[r][c] = gameArea.create_image(40 + c*80, 40 + r*80, image=tile)
 
-    startMenu.pack_forget()
+    startMenu.place_forget()
     scoreArea.pack()
     gameArea.pack()
 
@@ -511,7 +571,7 @@ def StartGame():
     movement = [0, 0, 0, 0,]
 
     global l
-    l = 8
+
     global grid
     grid = [[0 for i in range(l)] for i in range(l)] #holds locations of bombs and number indicators
     global gridMask
@@ -533,14 +593,10 @@ def StartGame():
     global playerName
     playerName =  ''
 
-    global score
-    score = -1
     scoreArea.itemconfig(timerText, text="Time: 0")
 
     global paused
     paused = False
-    global firstSweep 
-    firstSweep = True
     global active
     active = True
 
@@ -548,12 +604,15 @@ def StartGame():
     Spin(0)
 
 startMenu = tk.Canvas(window, height=320, width=240, bg='#002305', highlightthickness=0)
-startMenu.pack()
+startMenu.place(x=200, y=160)
 
-tk.Button(startMenu, text="START", command=StartGame).pack()
-tk.Button(startMenu, text="LEADERBOARD", command=DisplayLeaderboard).pack()
-tk.Button(startMenu, text="SETTINGS", command=DisplaySettings).pack()
-tk.Button(startMenu, text="QUIT", command=quit).pack()
+tk.Button(startMenu, text="NEW GAME", command=NewGame).place(x=0,y=0)
+tk.Button(startMenu, text="LOAD GAME", command=LoadGame).place(x=0,y=40)
+codeInput = tk.Entry(startMenu)
+codeInput.place(x=0,y=80)
+tk.Button(startMenu, text="LEADERBOARD", command=DisplayLeaderboard).place(x=0,y=120)
+tk.Button(startMenu, text="SETTINGS", command=DisplaySettings).place(x=0,y=160)
+tk.Button(startMenu, text="QUIT", command=quit).place(x=0,y=200)
 
 paused = True
 active = False
