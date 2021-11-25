@@ -351,7 +351,7 @@ def GameOver(won):
     paused = True
     active = False
 
-    text = scoreArea.create_text(320, 20, text="GAME OVER", fill="#13e843")
+    text = scoreArea.create_text(320, 30, text="GAME OVER", fill="#13e843")
     window.after(2000, DeleteItem, text, scoreArea)
 
     global numberOfBombsFound
@@ -497,10 +497,10 @@ window.configure(bg='#001703')
 tile = tk.PhotoImage(file="tile.png")
 crss = tk.PhotoImage(file="crosshair.png")
 
-scoreArea = tk.Canvas(window, width=640, height=40, bg='#001703', highlightthickness=0)
+scoreArea = tk.Canvas(window, width=640, height=60, bg='#001703', highlightthickness=0)
 
-timerText = scoreArea.create_text(580, 20, text="Time: 0", fill="#13e843")
-flagText = scoreArea.create_text(500, 20, text="Flags: ", fill="#13e843")
+timerText = scoreArea.create_text(580, 30, text="Time: 0", fill="#13e843")
+flagText = scoreArea.create_text(500, 30, text="Flags: ", fill="#13e843")
 
 mouseControls = True
 
@@ -537,10 +537,11 @@ def LoadGame():
     data = file.readlines()
     line = data[0].split()
 
-    global l
-    l = int(line[0])
+    global w, h
+    w = int(line[0])
+    h = int(line[1])
     global score
-    score = int(line[1]) -1
+    score = int(line[2]) -1
     
     StartGame()
 
@@ -555,7 +556,7 @@ def LoadGame():
 
     #gridMask
     for x in range(h):
-        line = data[x+1+l].split()
+        line = data[x+1+h].split()
         for y in range(w):
             gridMask[x][y] = int(line[y])
     
@@ -615,7 +616,7 @@ def StartGame():
     active = True
 
     maxW = 80*w
-    maxH = 80*h + 40
+    maxH = 80*h + 60
     window.maxsize(maxW, maxH)
     window.geometry(str(maxW)+"x"+str(maxH))
     gameArea.configure(height=maxW, width=maxW)
