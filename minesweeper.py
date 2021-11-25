@@ -1,7 +1,7 @@
 import random
 import math
 import tkinter as tk
-from tkinter.font import BOLD
+
 
 ## LOGIC ########################
 
@@ -154,12 +154,12 @@ def CheckWin():
 ## INTERACTION ##################
 
 def KeyPress(key):
-
+    
     global active
     global firstSweep
     if active: #gameplay
+        global paused
         if key.keycode == 27: #esc
-            global paused
             paused = not paused
             
             if paused:
@@ -246,10 +246,10 @@ def KeyPress(key):
                     for i in range(len(leaderboard)):
                         if int(leaderboard[i][1]) == numberOfBombsFound:
                             if numberOfBombsFound > int(leaderboard[i][2]):
-                                leaderboard.insert(i, [playerName, numberOfBombsFound, time])
+                                leaderboard.insert(i, [playerName, numberOfBombsFound, score])
                                 break
                         elif int(leaderboard[i][1]) < numberOfBombsFound:
-                            leaderboard.insert(i, [playerName, numberOfBombsFound, time])
+                            leaderboard.insert(i, [playerName, numberOfBombsFound, score])
                             break
 
                     file = open("leaderboard.txt", "w")
@@ -260,7 +260,7 @@ def KeyPress(key):
 
                 except:
                     file = open("leaderboard.txt", "w")
-                    file.write(playerName + " " + str(numberOfBombsFound) + " " + str(time) + "\n___ 0 999"*4)
+                    file.write(playerName + " " + str(numberOfBombsFound) + " " + str(score) + "\n___ 0 999"*4)
                     file.close()
         
     else:
@@ -331,8 +331,8 @@ def DisplayGrid():
                 if textGrid[r][c] != None:
                     gameArea.tag_raise(textGrid[r][c])
 
-def DeleteItem(item):
-    scoreArea.delete(item)
+def DeleteItem(item, canvas):
+    canvas.delete(item)
 
 def GameOver(won):
     global paused
@@ -341,7 +341,7 @@ def GameOver(won):
     active = False
 
     text = scoreArea.create_text(320, 20, text="GAME OVER", fill="#13e843")
-    window.after(2000, DeleteItem, text)
+    window.after(2000, DeleteItem, text, scoreArea)
 
     global numberOfBombsFound
     if won:
@@ -376,7 +376,7 @@ def DisplayEndMenu(won, numberOfBombsFound):
     playerNameText = endMenu.create_text(120, 80, text="Name: _ _ _", fill="#13e843")
     endMenu.create_text(120, 110, text="Total Bombs: " +str(numberOfBombs), fill="#13e843")
     endMenu.create_text(120, 130, text="Bombs Found: " + str(numberOfBombsFound), fill="#13e843")
-    endMenu.create_text(120, 170, text="Time: " + str(time), fill="#13e843")
+    endMenu.create_text(120, 170, text="Time: " + str(score), fill="#13e843")
 
     global endPromptText
     endPromptText = endMenu.create_text(120, 280, text="[ ENTER NAME TO CONTINUE ]", fill="#13e843")
@@ -385,6 +385,9 @@ def CreatePauseMenu():
     global pauseMenu
     pauseMenu = tk.Canvas(window, height=320, width=240, bg="#002305", highlightthickness=0)
     pauseMenu.create_text(120, 20, text="PAUSED", fill="#13e843")
+
+    button = tk.Button(pauseMenu, text="SAVE", command=Save).place(x=100, y=80)
+
     pauseMenu.create_text(120, 280, text="[ PRESS ESC TO UNPAUSE ]", fill="#13e843")
     pauseMenu.create_text(120, 300, text="[ PRESS BACKSPACE TO QUIT ]", fill="#13e843")
 
@@ -412,7 +415,6 @@ def DisplaySettings():
 
     button = tk.Button(settingsMenu, text="MOUSE CONTROLS", command=ToggleMouseControls).place(x=65, y=80)
     
-
     settingsMenu.create_text(120, 300, text="[ PRESS BACKSPACE TO RETURN ]", fill="#13e843")
 
     startMenu.pack_forget()
@@ -420,9 +422,9 @@ def DisplaySettings():
 
 def UpdateTimer():
     if not paused:
-        global time
-        time += 1
-        scoreArea.itemconfigure(timerText, text="Time: " + str(time))
+        global score
+        score += 1
+        scoreArea.itemconfigure(timerText, text="Time: " + str(score))
     if active:
         window.after(1000, UpdateTimer)
 
@@ -435,6 +437,38 @@ def Spin(angle):
         angle -= 10
     if active:
         window.after(40, Spin, angle)
+
+def Save():
+    if not firstSweep:
+
+        code = random.randint(1000, 9999)
+        while True:
+            try: #if code in use, generate new one
+                tempfile = open("./saves/" + str(code) + ".txt", "r")
+                tempfile.close()
+                code = random.randint(1000, 9999)
+            except:
+                break
+
+        file = open("./saves/" + str(code) + ".txt", "w")
+        file.write(str(l) + " " + str(score) + "\n")
+        #store grid
+        for x in range(l):
+            for y in range(l):
+                file.write(str(grid[x][y]) + " ")
+            file.write("\n")
+        #store gridMask
+        for x in range(l):
+            for y in range(l):
+                file.write(str(gridMask[x][y]) + " ")
+            file.write("\n")
+        file.close
+
+        text = pauseMenu.create_text(120, 120, text="GAME SAVED AS " + str(code), fill="#13e843")
+        window.after(3000, DeleteItem, text, pauseMenu)
+    else:
+        text = pauseMenu.create_text(120, 120, text="CANNOT SAVE BLANK GAME", fill="red")
+        window.after(1000, DeleteItem, text, pauseMenu)
 
 window = tk.Tk()
 window.title = "Minesweeper"
@@ -499,8 +533,8 @@ def StartGame():
     global playerName
     playerName =  ''
 
-    global time
-    time = -1
+    global score
+    score = -1
     scoreArea.itemconfig(timerText, text="Time: 0")
 
     global paused
