@@ -11,8 +11,8 @@ def GenerateGrid(inputX, inputY):
     #PLACE BOMBS
     counter = 0
     while counter < numberOfBombs:
-        x = random.randint(0, l-1)
-        y = random.randint(0, l-1)
+        x = random.randint(0, h-1)
+        y = random.randint(0, w-1)
         if gridMask[x][y] == 0 and grid[x][y] == 0: #ensure tile is not starting tile, or already a bomb
             grid[x][y] = -1
             counter += 1
@@ -21,17 +21,17 @@ def GenerateGrid(inputX, inputY):
     print('bombs placed')
 
     #SET NUMBER INDICATORS
-    for x in range(l):
-        for y in range(l):
+    for x in range(h):
+        for y in range(w):
             
             if grid[x][y] == -1: #if tile is bomb
 
                 #update numbers of surronding tiles
                 for deltaX in range(-1, 2):
-                    if x + deltaX > l-1 or x + deltaX < 0:
+                    if x + deltaX > h-1 or x + deltaX < 0:
                         continue
                     for deltaY in range(-1, 2):
-                        if y + deltaY > l-1 or y + deltaY < 0:
+                        if y + deltaY > w-1 or y + deltaY < 0:
                             continue
 
                         if grid[x + deltaX][y + deltaY] > -1: #if tile not a bomb
@@ -42,10 +42,10 @@ def GenerateGrid(inputX, inputY):
     #CREATE START AREA
     #set ring around start area as 2s
     for deltaX in range(-1, 2):
-        if inputX + deltaX > l-1 or inputX + deltaX < 0:
+        if inputX + deltaX > h-1 or inputX + deltaX < 0:
             continue
         for deltaY in range(-1, 2):
-            if inputY + deltaY > l-1 or inputY + deltaY < 0:
+            if inputY + deltaY > w-1 or inputY + deltaY < 0:
                 continue
 
             if deltaX == 0 and deltaY == 0: #if starting co-ords
@@ -61,8 +61,8 @@ def GenerateGrid(inputX, inputY):
         flag = False
 
         #search playergrid for 2s
-        for x in range(l):
-            for y in range(l):
+        for x in range(h):
+            for y in range(w):
 
                 if gridMask[x][y] == 2:
                     if grid[x][y] == 0:
@@ -71,10 +71,10 @@ def GenerateGrid(inputX, inputY):
                         flag = True
 
                         for deltaX in range(-1, 2):
-                            if x + deltaX < 0 or x + deltaX >= l:
+                            if x + deltaX < 0 or x + deltaX >= h:
                                 continue
                             for deltaY in range(-1, 2):
-                                if y + deltaY < 0 or y + deltaY >= l:
+                                if y + deltaY < 0 or y + deltaY >= w:
                                     continue
 
                                 if gridMask[x+deltaX][y+deltaY] == 0:
@@ -87,8 +87,8 @@ def GenerateGrid(inputX, inputY):
     while flag:
         flag = False
 
-        for x in range(l):
-            for y in range(l):
+        for x in range(h):
+            for y in range(w):
 
                 if gridMask[x][y] == 2:
                     if grid[x][y] > -1:
@@ -164,7 +164,7 @@ def KeyPress(key):
             
             if paused:
                 gameArea.pack_forget()
-                pauseMenu.place(x=200, y=160)
+                pauseMenu.place(x=(w*40)-120, y=80*(h-6))
             else:
                 pauseMenu.place_forget()
                 gameArea.pack()
@@ -209,6 +209,8 @@ def KeyPress(key):
                 gameArea.destroy()
                 pauseMenu.place_forget()
                 startMenu.place(x=200, y=160)
+                print("exit")
+                window.maxsize(640, 680)
 
     elif firstSweep == False: #endScreen
         global playerName
@@ -233,6 +235,7 @@ def KeyPress(key):
                 gameArea.destroy()
                 endMenu.place_forget()
                 startMenu.place(x=200, y=160)
+                window.maxsize(640, 680)
 
                 try:
                     leaderboard = []
@@ -318,8 +321,8 @@ def ToggleMouseControls(button):
 
 def DisplayGrid():
     
-    for r in range(l):
-        for c in range(l):
+    for r in range(h):
+        for c in range(w):
             
             #display numbers and bombs
             if grid[r][c] != 0:
@@ -360,8 +363,8 @@ def GameOver(won):
         print("BOOM!")
         numberOfBombsFound = 0
 
-        for x in range(l):
-            for y in range(l):
+        for x in range(h):
+            for y in range(w):
                 if grid[x][y] == -1:
                     if gridMask[x][y] == -1:
                         gameArea.itemconfig(textGrid[x][y], fill="#13e843")
@@ -373,7 +376,7 @@ def GameOver(won):
 def DisplayEndMenu(won, numberOfBombsFound):
     global endMenu
     endMenu = tk.Canvas(window, height=320, width=240, bg="#002305", highlightthickness=0)
-    endMenu.place(x=200, y=160)
+    endMenu.place(x=(w*40)-120, y=80*(h-6))
 
     if won:
         endMenu.create_text(120, 20, text="VICTORY", fill="#13e843")
@@ -381,7 +384,7 @@ def DisplayEndMenu(won, numberOfBombsFound):
         endMenu.create_text(120, 20, text="DEFEAT", fill="#13e843")
 
     global playerNameText
-    playerNameText = endMenu.create_text(120, 80, text="Name: _ _ _", fill="#13e843")
+    playerNameText = endMenu.create_text(120, 80, text="Name:  _ _ _", fill="#13e843")
     endMenu.create_text(120, 110, text="Total Bombs: " +str(numberOfBombs), fill="#13e843")
     endMenu.create_text(120, 130, text="Bombs Found: " + str(numberOfBombsFound), fill="#13e843")
     endMenu.create_text(120, 170, text="Time: " + str(score), fill="#13e843")
@@ -466,15 +469,15 @@ def Save():
                 break
 
         file = open("./saves/" + str(code) + ".txt", "w")
-        file.write(str(l) + " " + str(score) + "\n")
+        file.write(str(w) + " " + str(h) + " " + str(score) + "\n")
         #store grid
-        for x in range(l):
-            for y in range(l):
+        for x in range(h):
+            for y in range(w):
                 file.write(str(grid[x][y]) + " ")
             file.write("\n")
         #store gridMask
-        for x in range(l):
-            for y in range(l):
+        for x in range(h):
+            for y in range(w):
                 file.write(str(gridMask[x][y]) + " ")
             file.write("\n")
         file.close
@@ -496,8 +499,6 @@ crss = tk.PhotoImage(file="crosshair.png")
 
 scoreArea = tk.Canvas(window, width=640, height=40, bg='#001703', highlightthickness=0)
 
-tileGrid = [[None for c in range(8)] for r in range(8)]
-
 timerText = scoreArea.create_text(580, 20, text="Time: 0", fill="#13e843")
 flagText = scoreArea.create_text(500, 20, text="Flags: ", fill="#13e843")
 
@@ -507,10 +508,10 @@ mouseControls = True
 
 CreatePauseMenu()
 
-def NewGame():
+def NewGame(height, width):
 
-    global l
-    l = 8
+    global h, w
+    h, w = height, width
     global score
     score = -1
 
@@ -547,15 +548,15 @@ def LoadGame():
     global gridMask
 
     #grid
-    for x in range(l):
+    for x in range(h):
         line = data[x+1].split()
-        for y in range(l):
+        for y in range(w):
             grid[x][y] = int(line[y])
 
     #gridMask
-    for x in range(l):
+    for x in range(h):
         line = data[x+1+l].split()
-        for y in range(l):
+        for y in range(w):
             gridMask[x][y] = int(line[y])
     
     global firstSweep 
@@ -566,9 +567,11 @@ def LoadGame():
 
 def StartGame():
     global gameArea
+    global tileGrid
+    tileGrid = [[None for c in range(w)] for r in range(h)]
     gameArea = tk.Canvas(window, width=635, height=635, bg='#001703', highlightthickness=5, highlightbackground='#06611b')
-    for r in range(8):
-        for c in range(8):
+    for r in range(h):
+        for c in range(w):
             tileGrid[r][c] = gameArea.create_image(40 + c*80, 40 + r*80, image=tile)
 
     startMenu.place_forget()
@@ -583,19 +586,17 @@ def StartGame():
     global movement
     movement = [0, 0, 0, 0,]
 
-    global l
-
     global grid
-    grid = [[0 for i in range(l)] for i in range(l)] #holds locations of bombs and number indicators
+    grid = [[0 for i in range(w)] for i in range(h)] #holds locations of bombs and number indicators
     global gridMask
-    gridMask = [[0 for i in range(l)] for i in range(l)] #stores which tiles are 'visible' to the user
+    gridMask = [[0 for i in range(w)] for i in range(h)] #stores which tiles are 'visible' to the user
     global flagGrid
-    flagGrid = [[None for c in range(8)] for r in range(8)]
+    flagGrid = [[None for c in range(w)] for r in range(h)]
     global textGrid
-    textGrid = [[None for c in range(8)] for r in range(8)]
+    textGrid = [[None for c in range(w)] for r in range(h)]
 
     global tiles
-    tiles = l*l
+    tiles = w*h
     global numberOfBombs
     numberOfBombs = int(tiles / 8)
     global flags
@@ -613,7 +614,11 @@ def StartGame():
     global active
     active = True
 
-    window.maxsize(80*l, 80*l + 40)
+    maxW = 80*w
+    maxH = 80*h + 40
+    window.maxsize(maxW, maxH)
+    window.geometry(str(maxW)+"x"+str(maxH))
+    gameArea.configure(height=maxW, width=maxW)
 
     Move()
     Spin(0)
@@ -621,7 +626,7 @@ def StartGame():
 startMenu = tk.Canvas(window, height=320, width=240, bg='#002305', highlightthickness=0)
 startMenu.place(x=200, y=160)
 
-tk.Button(startMenu, text="NEW GAME", command=NewGame, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=0)
+tk.Button(startMenu, text="NEW GAME", command=lambda: NewGame(8, 8), bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=0)
 tk.Button(startMenu, text="LOAD GAME", command=LoadGame, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=40)
 codeInput = tk.Entry(startMenu)
 codeInput.place(x=0,y=80)
