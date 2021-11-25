@@ -123,10 +123,10 @@ def SweepTile(x, y):
     
     if grid[x][y] == 0: #if blank tile, ripple
         for deltaX in range(-1, 2):
-            if x + deltaX < 0 or x + deltaX >= l:
+            if x + deltaX < 0 or x + deltaX >= h:
                 continue
             for deltaY in range(-1, 2):
-                if y + deltaY < 0 or y + deltaY >= l:
+                if y + deltaY < 0 or y + deltaY >= w:
                     continue
                 SweepTile(x +deltaX, y +deltaY) #ripple
     else:
@@ -153,21 +153,47 @@ def CheckWin():
 
 ## INTERACTION ##################
 
+def TogglePause():
+    global paused
+    paused = not paused
+
+    if paused:
+        gameArea.pack_forget()
+        pauseMenu.place(x=(w*40)-120, y=80*(h-6))
+    else:
+        pauseMenu.place_forget()
+        gameArea.pack()
+
+def ToggleBossKey():
+    global bossKey
+    bossKey = not bossKey
+
+    global bossSheet
+
+    if bossKey:
+        if not paused:
+            TogglePause()
+        window.maxsize(1920,970)
+        window.geometry("1920x970")
+        bossSheet = tk.Canvas(window, height=970, width=1920)
+        bossSheet.create_image(960, 450, image=bossDecoy)
+        bossSheet.place(x=0, y=0)
+    else:
+        bossSheet.destroy()
+        window.maxsize(80*w,80*h+60)
+        window.geometry(str(80*w) + "x" + str(80*h+60))
+
 def KeyPress(key):
     
     global active
     global firstSweep
     if active: #gameplay
         global paused
+
+        if key.keycode == 9:
+            ToggleBossKey()
         if key.keycode == 27: #esc
-            paused = not paused
-            
-            if paused:
-                gameArea.pack_forget()
-                pauseMenu.place(x=(w*40)-120, y=80*(h-6))
-            else:
-                pauseMenu.place_forget()
-                gameArea.pack()
+            TogglePause()
 
         if key.keycode == 87 or key.keycode == 38: #w, uparrow
             movement[0] = 1
@@ -211,6 +237,24 @@ def KeyPress(key):
                 startMenu.place(x=200, y=160)
                 print("exit")
                 window.maxsize(640, 680)
+        
+        
+        global ctrl, fkey
+        if key.keycode == 17:
+            ctrl = True
+            if fkey:
+                
+                for x in range(h):
+                    for y in range(w):
+                        if grid[x][y] == -1:
+                            gameArea.tag_raise(textGrid[x][y])
+        elif key.keycode == 70:
+            fkey = True
+            if ctrl:
+                for x in range(h):
+                    for y in range(w):
+                        if grid[x][y] == -1:
+                            gameArea.tag_raise(textGrid[x][y])
 
     elif firstSweep == False: #endScreen
         global playerName
@@ -284,6 +328,12 @@ def KeyRelease(key):
         movement[2] = 0
     if key.keycode == 68 or key.keycode == 39:
         movement[3] = 0
+
+    global ctrl, fkey
+    if key.keycode == 17:
+        ctrl = False
+    elif key.keycode == 70:
+        fkey = False
 
 def Move():
     if not paused:
@@ -496,6 +546,7 @@ window.configure(bg='#001703')
 
 tile = tk.PhotoImage(file="tile.png")
 crss = tk.PhotoImage(file="crosshair.png")
+bossDecoy = tk.PhotoImage(file="bosskey.png")
 
 scoreArea = tk.Canvas(window, width=640, height=60, bg='#001703', highlightthickness=0)
 
@@ -638,6 +689,10 @@ tk.Button(startMenu, text="QUIT", command=quit, bg="#002305", activebackground="
 paused = True
 active = False
 firstSweep = True
+bossKey = False
+
+ctrl = False
+fkey = False
 
 window.bind("<KeyPress>", KeyPress)
 window.bind("<KeyRelease>", KeyRelease)
