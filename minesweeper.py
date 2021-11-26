@@ -1,3 +1,4 @@
+#1920x1080
 import random
 import math
 import tkinter as tk
@@ -158,7 +159,9 @@ def TogglePause():
 
     if paused:
         gameArea.pack_forget()
-        pauseMenu.place(x=(w*40)-120, y=80*(h-6))
+        ws = window.winfo_width() #window width
+        hs = gameArea.winfo_height() #gameArea height
+        pauseMenu.place(x=ws/2 - 120, y=hs/2 - 160)
     else:
         pauseMenu.place_forget()
         gameArea.pack()
@@ -172,15 +175,11 @@ def ToggleBossKey():
     if bossKey:
         if not paused:
             TogglePause()
-        window.maxsize(1920,970)
-        window.geometry("1920x970")
-        bossSheet = tk.Canvas(window, height=970, width=1920)
-        bossSheet.create_image(960, 450, image=bossDecoy)
+        bossSheet = tk.Canvas(window, height=1080, width=1920, bd=0)
+        bossSheet.create_image(960, 540, image=bossDecoy)
         bossSheet.place(x=0, y=0)
     else:
         bossSheet.destroy()
-        window.maxsize(80*w,80*h+60)
-        window.geometry(str(80*w) + "x" + str(80*h+60))
 
 def KeyPress(key):
     
@@ -253,9 +252,10 @@ def KeyPress(key):
                 scoreArea.pack_forget()
                 gameArea.destroy()
                 pauseMenu.place_forget()
-                startMenu.place(x=200, y=160)
+                ws = window.winfo_width() #window width
+                hs = window.winfo_height() #window height
+                startMenu.place(x=ws/2 - 120, y=hs/2 - 160)
                 print("exit")
-                window.maxsize(640, 680)
         
         
         global ctrl, fkey
@@ -297,8 +297,9 @@ def KeyPress(key):
                 scoreArea.pack_forget()
                 gameArea.destroy()
                 endMenu.place_forget()
-                startMenu.place(x=200, y=160)
-                window.maxsize(640, 680)
+                ws = window.winfo_width() #window width
+                hs = window.winfo_height() #window height
+                startMenu.place(x=ws/2 - 120, y=hs/2 - 160)
 
                 try:
                     leaderboard = []
@@ -330,12 +331,15 @@ def KeyPress(key):
                     file.close()
         
     else:
+        
+        ws = window.winfo_width() #window width
+        hs = window.winfo_height() #window height
         try:
             leaderboardMenu.place_forget()
             settingsMenu.place_forget()
-            startMenu.place(x=200, y=160)
+            startMenu.place(x=ws/2 - 120, y=hs/2 - 160)
         except:
-            startMenu.place(x=200, y=160)
+            startMenu.place(x=ws/2 - 120, y=hs/2 - 160)
 
 def KeyRelease(key):
 
@@ -447,7 +451,10 @@ def GameOver(won):
 def DisplayEndMenu(won, numberOfBombsFound):
     global endMenu
     endMenu = tk.Canvas(window, height=320, width=240, bg="#002305", highlightthickness=0)
-    endMenu.place(x=(w*40)-120, y=80*(h-6))
+
+    ws = window.winfo_width() #window width
+    hs = gameArea.winfo_height() #gameArea height
+    endMenu.place(x=ws/2 - 120, y=hs/2 - 160)
 
     if won:
         endMenu.create_text(120, 20, text="VICTORY", fill="#13e843")
@@ -480,15 +487,18 @@ def DisplayLeaderboard():
 
     file = open("leaderboard.txt", "r")
     data = file.readlines()
+    leaderboardMenu.create_text(120, 60, text="NAME \t BOMBS \t TIME \n -------------------------", fill="#13e843")
     for i in range(len(data)):
         line = data[i].split()
         if line[0] == "___":
             line[2] = "0"
-        leaderboardMenu.create_text(120, 80 + (i * 30), text=line[0] + " " + line[1] + " " + line[2], fill="#13e843")
+        leaderboardMenu.create_text(120, 100 + (i * 30), text=line[0] + " \t" + line[1] + " \t" + line[2], fill="#13e843")
     leaderboardMenu.create_text(120, 300, text="[ PRESS BACKSPACE TO RETURN ]", fill="#13e843")
 
     startMenu.place_forget()
-    leaderboardMenu.place(x=200, y=160)
+    ws = window.winfo_width() #window width
+    hs = window.winfo_height() #window height
+    leaderboardMenu.place(x=ws/2 - 120, y=hs/2 - 160)
 
 def DisplaySettings():
     global settingsMenu
@@ -506,24 +516,26 @@ def DisplaySettings():
 
     up = tk.Button(settingsMenu, width=2, text="W", bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
     up.configure(command= lambda: SetBinding("u", up)) 
-    up.place(x=100, y=120)
+    up.place(x=110, y=120)
 
     left = tk.Button(settingsMenu, width=2, text="A", bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
     left.configure(command= lambda: SetBinding("l", left)) 
-    left.place(x=80, y=145)
+    left.place(x=90, y=145)
 
     down = tk.Button(settingsMenu, width=2, text="S", bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
     down.configure(command= lambda: SetBinding("d", down)) 
-    down.place(x=100, y=145)
+    down.place(x=110, y=145)
 
     right = tk.Button(settingsMenu, width=2, text="D", bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
     right.configure(command= lambda: SetBinding("r", right)) 
-    right.place(x=120, y=145)
+    right.place(x=130, y=145)
     
     settingsMenu.create_text(120, 300, text="[ PRESS BACKSPACE TO RETURN ]", fill="#13e843")
 
     startMenu.place_forget()
-    settingsMenu.place(x=200, y=160)
+    ws = window.winfo_width() #window width
+    hs = window.winfo_height() #window height
+    settingsMenu.place(x=ws/2 - 120, y=hs/2 - 160)
 
 def SetBinding(direction, button):
     global binding
@@ -585,8 +597,7 @@ def Save():
 
 window = tk.Tk()
 window.title = "Minesweeper"
-window.geometry("640x680") #wxh
-window.maxsize(640, 680)
+window.attributes("-fullscreen", True)
 window.configure(bg='#001703')
 
 tile = tk.PhotoImage(file="tile.png")
@@ -623,7 +634,7 @@ def LoadGame():
         code = codeInput.get()
         file = open("./saves/" + code + ".txt", "r")
     except:
-        text = startMenu.create_text(120, 115, text="SAVE NOT FOUND", fill="red")
+        text = startMenu.create_text(120, 155, text="SAVE NOT FOUND", fill="red")
         window.after(1000, DeleteItem, text, startMenu)
         return
 
@@ -711,27 +722,27 @@ def StartGame():
     global active
     active = True
 
-    maxW = 80*w
-    maxH = 80*h + 60
-    window.maxsize(maxW, maxH)
-    window.geometry(str(maxW)+"x"+str(maxH))
-    gameArea.configure(height=maxW, width=maxW)
+    maxW = 80*w-5
+    maxH = 80*h-5
+    gameArea.configure(height=maxH, width=maxW) #temp
 
     Move()
     Spin(0)
 
 startMenu = tk.Canvas(window, height=320, width=240, bg='#002305', highlightthickness=0)
-startMenu.place(x=200, y=160)
+startMenu.place(x=840, y=380)
 
-tk.Button(startMenu, text="EASY", command=lambda: NewGame(8, 8), bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=20)
-tk.Button(startMenu, text="MEDIUM", command=lambda: NewGame(10, 16), bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=40,y=20)
-tk.Button(startMenu, text="HARD", command=lambda: NewGame(12, 24), bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=100,y=20)
-tk.Button(startMenu, text="LOAD GAME", command=LoadGame, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=60)
-codeInput = tk.Entry(startMenu)
-codeInput.place(x=0,y=85)
-tk.Button(startMenu, text="LEADERBOARD", command=DisplayLeaderboard, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=125)
-tk.Button(startMenu, text="SETTINGS", command=DisplaySettings, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=165)
-tk.Button(startMenu, text="QUIT", command=quit, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="red", bd=1).place(x=0,y=205)
+startMenu.create_text(120, 20, text="MINESWEEPER", fill="#13e843")
+
+tk.Button(startMenu, text="EASY", command=lambda: NewGame(8, 8), bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=50,y=60)
+tk.Button(startMenu, text="MEDIUM", command=lambda: NewGame(10, 14), bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=90,y=60)
+tk.Button(startMenu, text="HARD", command=lambda: NewGame(12, 24), bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=150,y=60)
+tk.Button(startMenu, text="LOAD GAME", command=LoadGame, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=80,y=100)
+codeInput = tk.Entry(startMenu, width=12)
+codeInput.place(x=80,y=125)
+tk.Button(startMenu, text="LEADERBOARD", command=DisplayLeaderboard, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=75,y=165)
+tk.Button(startMenu, text="SETTINGS", command=DisplaySettings, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=85,y=205)
+tk.Button(startMenu, text="QUIT", command=quit, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="red", bd=1).place(x=100,y=285)
 
 paused = True
 active = False
