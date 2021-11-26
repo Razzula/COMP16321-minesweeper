@@ -207,16 +207,16 @@ def KeyPress(key):
             return
 
         #MOVEMENT
-        if key.keycode == upKey:
+        if key.keycode == upKey[0]:
             movement[0] = 1
             return
-        elif key.keycode == leftKey:
+        elif key.keycode == leftKey[0]:
             movement[1] = 1
             return
-        elif key.keycode == downKey:
+        elif key.keycode == downKey[0]:
             movement[2] = 1
             return
-        elif key.keycode == rightKey:
+        elif key.keycode == rightKey[0]:
             movement[3] = 1
             return   
                  
@@ -301,13 +301,13 @@ def KeyRelease(key):
 
     if active:
         #MOVEMENT
-        if key.keycode == upKey:
+        if key.keycode == upKey[0]:
             movement[0] = 0
-        elif key.keycode == leftKey:
+        elif key.keycode == leftKey[0]:
             movement[1] = 0
-        elif key.keycode == downKey:
+        elif key.keycode == downKey[0]:
             movement[2] = 0
-        elif key.keycode == rightKey:
+        elif key.keycode == rightKey[0]:
             movement[3] = 0
 
         #CHEAT
@@ -351,13 +351,17 @@ def BindKey(key):
         window.after(1000, DeleteItem, errorMessage, settingsMenu)
         return
     elif binding[0] == "u":
-        upKey = key.keycode
+        upKey[0] = key.keycode
+        upKey[1] = str(key.char.upper())
     elif binding[0] == "l":
-        leftKey = key.keycode
+        leftKey[0] = key.keycode
+        leftKey[1] = str(key.char.upper())
     elif binding[0] == "d":
-        downKey = key.keycode
+        downKey[0] = key.keycode
+        downKey[1] = str(key.char.upper())
     else:
-        rightKey = key.keycode
+        rightKey[0] = key.keycode
+        rightKey[1] = str(key.char.upper())
     binding[2].configure(text=key.char.upper()) #update button text
 
 def ToggleMouseControls(button):
@@ -495,16 +499,16 @@ def DisplaySettings():
     button.place(x=65, y=80)
 
     #keybind buttons
-    up = tk.Button(settingsMenu, width=2, text="W", bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
+    up = tk.Button(settingsMenu, width=2, text=upKey[1], bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
     up.configure(command= lambda: SetActiveBind("u", up)) 
     up.place(x=110, y=120)
-    left = tk.Button(settingsMenu, width=2, text="A", bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
+    left = tk.Button(settingsMenu, width=2, text=leftKey[1], bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
     left.configure(command= lambda: SetActiveBind("l", left)) 
     left.place(x=90, y=145)
-    down = tk.Button(settingsMenu, width=2, text="S", bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
+    down = tk.Button(settingsMenu, width=2, text=downKey[1], bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
     down.configure(command= lambda: SetActiveBind("d", down)) 
     down.place(x=110, y=145)
-    right = tk.Button(settingsMenu, width=2, text="D", bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
+    right = tk.Button(settingsMenu, width=2, text=rightKey[1], bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
     right.configure(command= lambda: SetActiveBind("r", right)) 
     right.place(x=130, y=145)
     
@@ -768,10 +772,10 @@ paused, firstSweep = True, True
 active, bossKeyActive, mouseControls = False, False, False
 ctrl, fkey, cheat = False, False, False
 
-upKey = 87
-leftKey = 65
-downKey = 83
-rightKey = 68
+upKey = [87, "W"]
+leftKey = [65, "A"]
+downKey = [83, "S"]
+rightKey = [68, "D"]
 binding = ["", False, None]
 
 scoreArea = tk.Canvas(window, width=640, height=60, bg='#001703', highlightthickness=0)
