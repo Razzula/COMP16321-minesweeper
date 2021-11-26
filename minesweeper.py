@@ -2,7 +2,6 @@ import random
 import math
 import tkinter as tk
 
-
 ## LOGIC ########################
 
 def GenerateGrid(inputX, inputY):
@@ -187,6 +186,26 @@ def KeyPress(key):
     
     global active
     global firstSweep
+
+    global binding
+    if binding[1]:
+        global upKey, leftKey, downKey, rightKey
+        
+        binding[1] = False      
+        binding[2].configure(fg="#13e843")
+        if key.keycode in [9, 27, 13, 8, upKey, leftKey, downKey, rightKey]:
+            return
+        elif binding[0] == "u":
+            upKey = key.keycode
+        elif binding[0] == "l":
+            leftKey = key.keycode
+        elif binding[0] == "d":
+            downKey = key.keycode
+        else:
+            rightKey = key.keycode
+        binding[2].configure(text=key.char.upper())
+        return
+
     if active: #gameplay
         global paused
 
@@ -195,13 +214,13 @@ def KeyPress(key):
         if key.keycode == 27: #esc
             TogglePause()
 
-        if key.keycode == 87 or key.keycode == 38: #w, uparrow
+        if key.keycode == upKey: #or key.keycode == 38: #w, uparrow
             movement[0] = 1
-        if key.keycode == 65 or key.keycode == 37: #a, leftarrow
+        if key.keycode == leftKey: #or key.keycode == 37: #a, leftarrow
             movement[1] = 1
-        if key.keycode == 83 or key.keycode == 40: #s, downarrow
+        if key.keycode == downKey: #or key.keycode == 40: #s, downarrow
             movement[2] = 1
-        if key.keycode == 68 or key.keycode == 39: #d, rightarrow
+        if key.keycode == rightKey: #or key.keycode == 39: #d, rightarrow
             movement[3] = 1
 
         if not paused:
@@ -320,20 +339,21 @@ def KeyPress(key):
 
 def KeyRelease(key):
 
-    if key.keycode == 87 or key.keycode == 38:
-        movement[0] = 0
-    if key.keycode == 65 or key.keycode == 37:
-        movement[1] = 0
-    if key.keycode == 83 or key.keycode == 40:
-        movement[2] = 0
-    if key.keycode == 68 or key.keycode == 39:
-        movement[3] = 0
+    if active:
+        if key.keycode == upKey:
+            movement[0] = 0
+        elif key.keycode == leftKey:
+            movement[1] = 0
+        elif key.keycode == downKey:
+            movement[2] = 0
+        elif key.keycode == rightKey:
+            movement[3] = 0
 
-    global ctrl, fkey
-    if key.keycode == 17:
-        ctrl = False
-    elif key.keycode == 70:
-        fkey = False
+        global ctrl, fkey
+        if key.keycode == 17:
+            ctrl = False
+        elif key.keycode == 70:
+            fkey = False
 
 def Move():
     if not paused:
@@ -366,6 +386,7 @@ def ToggleMouseControls(button):
         button.configure(fg="#13e843", activeforeground="red")
     else:
         button.configure(fg="red", activeforeground="#13e843")
+
 
 ## INTERFACE ####################
 
@@ -482,11 +503,35 @@ def DisplaySettings():
         
     button.configure(command=lambda: ToggleMouseControls(button))
     button.place(x=65, y=80)
+
+    up = tk.Button(settingsMenu, width=2, text="W", bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
+    up.configure(command= lambda: SetBinding("u", up)) 
+    up.place(x=100, y=120)
+
+    left = tk.Button(settingsMenu, width=2, text="A", bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
+    left.configure(command= lambda: SetBinding("l", left)) 
+    left.place(x=80, y=145)
+
+    down = tk.Button(settingsMenu, width=2, text="S", bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
+    down.configure(command= lambda: SetBinding("d", down)) 
+    down.place(x=100, y=145)
+
+    right = tk.Button(settingsMenu, width=2, text="D", bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="yellow", bd=1)
+    right.configure(command= lambda: SetBinding("r", right)) 
+    right.place(x=120, y=145)
     
     settingsMenu.create_text(120, 300, text="[ PRESS BACKSPACE TO RETURN ]", fill="#13e843")
 
     startMenu.place_forget()
     settingsMenu.place(x=200, y=160)
+
+def SetBinding(direction, button):
+    global binding
+    if binding[2] != None:
+        binding[2].configure(fg="#13e843")
+    binding = [direction, True, button]
+    button.configure(fg="yellow")
+
 
 def UpdateTimer():
     if not paused:
@@ -553,7 +598,7 @@ scoreArea = tk.Canvas(window, width=640, height=60, bg='#001703', highlightthick
 timerText = scoreArea.create_text(580, 30, text="Time: 0", fill="#13e843")
 flagText = scoreArea.create_text(500, 30, text="Flags: ", fill="#13e843")
 
-mouseControls = True
+mouseControls = True #temp
 
 ## MAIN ######################### 
 
@@ -578,7 +623,7 @@ def LoadGame():
         code = codeInput.get()
         file = open("./saves/" + code + ".txt", "r")
     except:
-        text = startMenu.create_text(120, 110, text="SAVE NOT FOUND", fill="red")
+        text = startMenu.create_text(120, 115, text="SAVE NOT FOUND", fill="red")
         window.after(1000, DeleteItem, text, startMenu)
         return
 
@@ -678,13 +723,15 @@ def StartGame():
 startMenu = tk.Canvas(window, height=320, width=240, bg='#002305', highlightthickness=0)
 startMenu.place(x=200, y=160)
 
-tk.Button(startMenu, text="NEW GAME", command=lambda: NewGame(8, 8), bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=0)
-tk.Button(startMenu, text="LOAD GAME", command=LoadGame, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=40)
+tk.Button(startMenu, text="EASY", command=lambda: NewGame(8, 8), bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=20)
+tk.Button(startMenu, text="MEDIUM", command=lambda: NewGame(10, 16), bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=40,y=20)
+tk.Button(startMenu, text="HARD", command=lambda: NewGame(12, 24), bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=100,y=20)
+tk.Button(startMenu, text="LOAD GAME", command=LoadGame, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=60)
 codeInput = tk.Entry(startMenu)
-codeInput.place(x=0,y=80)
-tk.Button(startMenu, text="LEADERBOARD", command=DisplayLeaderboard, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=120)
-tk.Button(startMenu, text="SETTINGS", command=DisplaySettings, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=160)
-tk.Button(startMenu, text="QUIT", command=quit, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="red", bd=1).place(x=0,y=200)
+codeInput.place(x=0,y=85)
+tk.Button(startMenu, text="LEADERBOARD", command=DisplayLeaderboard, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=125)
+tk.Button(startMenu, text="SETTINGS", command=DisplaySettings, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="#13e843", bd=1).place(x=0,y=165)
+tk.Button(startMenu, text="QUIT", command=quit, bg="#002305", activebackground="#002305", fg="#13e843", activeforeground="red", bd=1).place(x=0,y=205)
 
 paused = True
 active = False
@@ -699,5 +746,11 @@ window.bind("<KeyRelease>", KeyRelease)
 window.bind('<Motion>', MouseMove)
 
 leaderboardMenu = tk.Canvas()
+
+upKey = 87
+leftKey = 65
+downKey = 83
+rightKey = 68
+binding = ["", False, None]
 
 window.mainloop()
